@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "ccleanup",
     "description": "Interactive cleanup of Claude Code sessions: find the biggest and oldest transcripts, delete them, get a reminder.",
     "type": "module",
@@ -20,6 +20,7 @@
         "check": "tsc --noEmit && eslint . && prettier --check .",
         "format": "prettier --write . && eslint --fix .",
         "screenshots": "node scripts/screenshot.ts",
+        "version": "npm run screenshots && git add assets/hero-*.svg",
         "prepublishOnly": "npm run check && npm test && npm run build"
     },
     "engines": {
