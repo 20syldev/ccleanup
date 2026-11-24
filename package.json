@@ -1,0 +1,62 @@
+{
+    "version": "1.0.0",
+    "name": "ccleanup",
+    "description": "Interactive cleanup of Claude Code sessions: find the biggest and oldest transcripts, delete them, get a reminder.",
+    "type": "module",
+    "bin": {
+        "ccleanup": "dist/cli.js"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
+    "scripts": {
+        "prepare": "npm run clean && tsc",
+        "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+        "build": "npm run clean && tsc",
+        "dev": "tsc --watch",
+        "test": "node --test \"src/**/__tests__/*.test.ts\"",
+        "check": "tsc --noEmit && eslint . && prettier --check .",
+        "format": "prettier --write . && eslint --fix .",
+        "screenshots": "node scripts/screenshot.ts",
+        "prepublishOnly": "npm run check && npm test && npm run build"
+    },
+    "engines": {
+        "node": ">=22.12.0"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/20syldev/ccleanup.git"
+    },
+    "keywords": [
+        "claude",
+        "claude-code",
+        "cleanup",
+        "sessions",
+        "transcripts",
+        "disk-space",
+        "cli",
+        "tui"
+    ],
+    "author": "Sylvain L.",
+    "license": "BSD-3-Clause",
+    "bugs": {
+        "url": "https://github.com/20syldev/ccleanup/issues"
+    },
+    "homepage": "https://github.com/20syldev/ccleanup",
+    "devDependencies": {
+        "@eslint/js": "^9.39.5",
+        "@types/node": "^26.6.6",
+        "eslint": "^9.39.5",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-check-file": "^3.3.2",
+        "eslint-plugin-import": "^2.32.0",
+        "prettier": "^3.10.1",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.74.0"
+    }
+}

@@ -1,0 +1,3 @@
+eslint.config.mjs linguist-detectable=false
+prettier.config.mjs linguist-detectable=false
+assets/*.svg linguist-generated=true
