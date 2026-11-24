@@ -22,6 +22,11 @@ const FRAME_MS = 80;
 
 // Width in columns of the pieces an animation stores once
 const BAND = 20;
+
+// Shadow of the light logo: a brown that reads as beige on white, as a dim brown on black
+const LIGHT_SHADOW = "#783c28";
+const LIGHT_SHADOW_OPACITY = 0.26;
+
 const NOW = Date.UTC(2026, 10, 24, 17, 30);
 const HOME = "/home/you";
 const OLDER_THAN = 14 * DAY;
@@ -645,26 +650,50 @@ function still(
 }
 
 /**
- * Renders the logo at the top of the README from src/ui/logo.ts, with the pixels of the
- * terminal, on a transparent background so it sits on the page.
+ * Renders the logo at the top of the README from src/ui/logo.ts, one rect per pixel, on a
+ * transparent background so it sits on the page. The light logo is also the fallback of
+ * pages that ignore its picture element, such as npm in dark mode, so its shadow is
+ * translucent and fits any background.
  *
  * @param dark - Dark or light background
  */
 function readmeLogo(dark: boolean): void {
     const paint = theme(dark);
-    const rows = logo(paint);
-
-    // One logo pixel of margin: a cell wide, half a cell high
+    const shadow = hex(paint.rgb("logoShadow"));
+    const ink: string[] = [];
+    const shade: string[] = [];
+    const num = (value: number) => Number(value.toFixed(2));
+    logo(paint).forEach((row, r) => {
+        let col = 0;
+        for (const cell of cells(row)) {
+            const fg = cell.pen.fg ? hex(cell.pen.fg) : undefined;
+            const bg = cell.pen.bg ? hex(cell.pen.bg) : undefined;
+            const top = cell.char === LOWER || cell.char === " " ? bg : fg;
+            const bottom = cell.char === UPPER || cell.char === " " ? bg : fg;
+            [top, bottom].forEach((color, half) => {
+                if (!color) return;
+                const x = num((col + 1) * CELL_W);
+                const y = num(((r * 2 + half + 1) * CELL_H) / 2);
+                const fill = color === shadow && !dark ? LIGHT_SHADOW : color;
+                const rect = `<rect x="${x}" y="${y}" width="${num(CELL_W + 0.4)}" height="${num(CELL_H / 2 + 0.4)}" fill="${fill}"/>`;
+                (color === shadow ? shade : ink).push(rect);
+            });
+            col += cell.span;
+        }
+    });
     const outW = Math.round((LOGO_WIDTH + 2) * CELL_W);
-    const outH = Math.round((rows.length + 1) * CELL_H);
-    const shift = `translate(${CELL_W - PAD} ${CELL_H / 2 - PAD})`;
+    const outH = Math.round((logo(paint).length + 1) * CELL_H);
+
+    // One group, so the overlapping shadow pixels never darken where they meet
+    const opacity = dark ? "" : ` opacity="${LIGHT_SHADOW_OPACITY}"`;
     save(
         `logo-${dark ? "dark" : "light"}`,
         [
             `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${outW} ${outH}" width="${outW}" height="${outH}" shape-rendering="crispEdges" role="img" aria-label="ccleanup">`,
-            `<g transform="${shift}">`,
-            draw(rows, paint, 0, LOGO_WIDTH),
+            `<g${opacity}>`,
+            ...shade,
             "</g>",
+            ...ink,
             "</svg>",
             "",
         ].join("\n"),
