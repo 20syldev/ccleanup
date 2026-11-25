@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
+import { link, mkdir, mkdtemp, rm, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
@@ -183,6 +183,30 @@ describe("measureEntry", () => {
             const session = (await measureEntry(entry, options()))!;
             assert.equal(session.cwd, cwd);
             assert.equal(session.project, "verylongsegment/app");
+        } finally {
+            await rm(moved, { recursive: true, force: true });
+        }
+    });
+
+    it("counts a file with two hard links once, as deleting both frees it once", async () => {
+        const moved = await mkdtemp(join(tmpdir(), "ccleanup-links-"));
+        try {
+            const project = join(moved, "projects", "-home-test-links");
+            const folder = (id: string) => join(project, id);
+            await mkdir(folder(MOVED), { recursive: true });
+            await mkdir(folder(ORPHAN), { recursive: true });
+            await writeFile(join(folder(MOVED), "a.bin"), "x".repeat(100_000));
+            await link(join(folder(MOVED), "a.bin"), join(folder(MOVED), "b.bin"));
+            await writeFile(join(folder(ORPHAN), "a.bin"), "x".repeat(100_000));
+            await writeFile(join(folder(ORPHAN), "b.bin"), "x".repeat(100_000));
+            const [linked, copied] = await Promise.all(
+                (await discover(moved)).map((entry) => measureEntry(entry, options())),
+            );
+            const size = (session: typeof linked) => session!.bytes;
+            const [small, big] = [linked, copied].sort((a, b) => size(a) - size(b));
+            assert.equal(small!.id, MOVED);
+            assert.equal(big!.id, ORPHAN);
+            assert.ok(size(big) - size(small) >= 100_000);
         } finally {
             await rm(moved, { recursive: true, force: true });
         }

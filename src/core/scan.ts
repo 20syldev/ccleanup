@@ -90,7 +90,7 @@ export function sessionKey(session: { configDir: string; projectDir: string; id:
  * Measures a file or a whole folder without following symlinks.
  *
  * @param path - File or folder
- * @returns Disk usage in bytes (allocated blocks) and newest modification time, or null when the path does not exist
+ * @returns Disk usage in bytes (allocated blocks) and newest modification time, or null when the path does not exist; a file with several hard links is counted once
  */
 async function measure(path: string): Promise<{ bytes: number; mtime: number } | null> {
     let info;
@@ -105,6 +105,7 @@ async function measure(path: string): Promise<{ bytes: number; mtime: number } |
     let bytes = usage(info);
     let mtime = info.mtimeMs;
     const stack = [path];
+    const linked = new Set<string>();
     while (stack.length > 0) {
         const dir = stack.pop()!;
         let entries: Dirent[];
@@ -125,8 +126,15 @@ async function measure(path: string): Promise<{ bytes: number; mtime: number } |
         );
         for (const item of stats) {
             if (!item) continue;
-            bytes += usage(item.stat);
             mtime = Math.max(mtime, item.stat.mtimeMs);
+
+            // Deleting every link frees the file once
+            if (!item.isDir && item.stat.nlink > 1) {
+                const key = `${item.stat.dev}:${item.stat.ino}`;
+                if (linked.has(key)) continue;
+                linked.add(key);
+            }
+            bytes += usage(item.stat);
             if (item.isDir) stack.push(item.full);
         }
     }
