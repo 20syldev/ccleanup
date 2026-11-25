@@ -32,12 +32,27 @@ Drawn from the real interface, on made-up sessions.
 
 ## Usage
 
+Run it without installing it, with the tool you already have:
+
+| Tool | Command                |
+| ---- | ---------------------- |
+| npm  | `npx ccleanup`         |
+| Bun  | `bunx ccleanup@latest` |
+| pnpm | `pnpm dlx ccleanup`    |
+
+These examples use `npx`; the other tools take the same options. None of them deletes anything without asking:
+
 ```bash
 npx ccleanup                      # interactive list
 npx ccleanup --older-than 14d     # same, with sessions older than 14 days pre-marked
 npx ccleanup --list               # print the list and exit
 npx ccleanup --older-than 30d --min-size 100M --dry-run    # preview a bulk cleanup
-npx ccleanup --older-than 30d --yes                        # delete without the UI
+```
+
+Without the UI, `--yes` deletes the targeted sessions at once, with no confirmation. Preview them with `--dry-run` first:
+
+```bash
+npx ccleanup --older-than 30d --yes
 ```
 
 ### From a clone
