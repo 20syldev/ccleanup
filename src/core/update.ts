@@ -2,10 +2,13 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join } from "node:path";
 
-import { DAY } from "../lib/format.ts";
+import { HOUR } from "../lib/format.ts";
 
 const LATEST_URL = "https://registry.npmjs.org/ccleanup/latest";
 const TIMEOUT_MS = 3000;
+
+// How long an answer of the registry is trusted: a new release shows within half a day
+export const CHECK_EVERY = 12 * HOUR;
 
 // Only plain versions are ever printed, so a bad answer cannot reach the terminal
 const VERSION = /^\d+\.\d+\.\d+$/;
@@ -133,7 +136,7 @@ async function fetchLatest(
 /**
  * Starts looking for a newer version in the background.
  *
- * The registry is asked at most once a day, and the answer is kept. The newest version known
+ * The registry is asked at most every 12 hours, and the answer is kept. The newest version known
  * is the answer just received, or the kept one when the request did not end in time.
  *
  * @param current - Running version
@@ -153,7 +156,8 @@ export function startUpdateCheck(
         const cache = await readCache(file);
 
         // A date in the future comes from a clock that moved: ask again
-        const fresh = cache !== undefined && cache.checkedAt <= now && now - cache.checkedAt < DAY;
+        const fresh =
+            cache !== undefined && cache.checkedAt <= now && now - cache.checkedAt < CHECK_EVERY;
         if (fresh) return cache.latest;
 
         // Closed before the answer of the cache came: nothing worth asking for

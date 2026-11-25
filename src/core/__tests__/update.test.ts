@@ -4,8 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, beforeEach, describe, it } from "node:test";
 
-import { DAY } from "../../lib/format.ts";
-import { cacheFile, isNewer, startUpdateCheck, updateDisabled } from "../update.ts";
+import { cacheFile, CHECK_EVERY, isNewer, startUpdateCheck, updateDisabled } from "../update.ts";
 
 const NOW = Date.UTC(2026, 10, 25, 12);
 const PATIENCE = 2000;
@@ -104,16 +103,16 @@ describe("startUpdateCheck", () => {
         });
     });
 
-    it("answers from the cache, without asking, for a day", async () => {
-        await keep({ checkedAt: NOW - DAY + 1000, latest: "1.1.0" });
+    it("answers from the cache, without asking, for 12 hours", async () => {
+        await keep({ checkedAt: NOW - CHECK_EVERY + 1000, latest: "1.1.0" });
         const { fetcher, calls } = answering({ version: "9.9.9" });
         const check = startUpdateCheck("1.0.3", { env: {}, now: NOW, file, fetcher });
         assert.equal(await check.finish(PATIENCE), "1.1.0");
         assert.equal(calls(), 0);
     });
 
-    it("asks again after a day, or when the kept date is in the future", async () => {
-        for (const checkedAt of [NOW - DAY, NOW + 1000]) {
+    it("asks again after 12 hours, or when the kept date is in the future", async () => {
+        for (const checkedAt of [NOW - CHECK_EVERY, NOW + 1000]) {
             await keep({ checkedAt, latest: "1.0.4" });
             const { fetcher, calls } = answering({ version: "1.2.0" });
             const check = startUpdateCheck("1.0.3", { env: {}, now: NOW, file, fetcher });
@@ -135,8 +134,8 @@ describe("startUpdateCheck", () => {
         );
     });
 
-    it("keeps the earlier answer and waits a day when the registry fails", async () => {
-        await keep({ checkedAt: NOW - 2 * DAY, latest: "1.1.0" });
+    it("keeps the earlier answer and waits 12 hours when the registry fails", async () => {
+        await keep({ checkedAt: NOW - 2 * CHECK_EVERY, latest: "1.1.0" });
         for (const failing of [
             answering({}, 503).fetcher,
             (async () => Promise.reject(new Error("offline"))) as typeof fetch,
@@ -147,7 +146,7 @@ describe("startUpdateCheck", () => {
                 checkedAt: NOW,
                 latest: "1.1.0",
             });
-            await keep({ checkedAt: NOW - 2 * DAY, latest: "1.1.0" });
+            await keep({ checkedAt: NOW - 2 * CHECK_EVERY, latest: "1.1.0" });
         }
     });
 
@@ -179,7 +178,7 @@ describe("startUpdateCheck", () => {
     });
 
     it("drops a request still running at the exit, and keeps nothing of it", async () => {
-        await keep({ checkedAt: NOW - 2 * DAY, latest: "1.1.0" });
+        await keep({ checkedAt: NOW - 2 * CHECK_EVERY, latest: "1.1.0" });
         const slow = ((_url: string, init?: RequestInit) =>
             new Promise((_resolve, reject) => {
                 const signal = init!.signal!;
@@ -189,13 +188,13 @@ describe("startUpdateCheck", () => {
         const check = startUpdateCheck("1.0.3", { env: {}, now: NOW, file, fetcher: slow });
         assert.equal(await check.finish(20), "1.1.0");
         assert.deepEqual(JSON.parse(await readFile(file, "utf8")), {
-            checkedAt: NOW - 2 * DAY,
+            checkedAt: NOW - 2 * CHECK_EVERY,
             latest: "1.1.0",
         });
     });
 
     it("reads and sends nothing when it is disabled", async () => {
-        await keep({ checkedAt: NOW - 2 * DAY, latest: "1.1.0" });
+        await keep({ checkedAt: NOW - 2 * CHECK_EVERY, latest: "1.1.0" });
         const { fetcher, calls } = answering({ version: "1.2.0" });
         for (const env of [{ NO_UPDATE_NOTIFIER: "1" }, { CI: "1" }, { npm_command: "exec" }]) {
             const check = startUpdateCheck("1.0.3", { env, now: NOW, file, fetcher });
