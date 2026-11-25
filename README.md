@@ -70,12 +70,13 @@ npm link          # puts `ccleanup` on the PATH (or run `node dist/cli.js`)
 | ------------------------ | ----------------------------------------------------------------------------------------- |
 | Up, Down / `j` `k`       | Move                                                                                      |
 | `PgUp` `PgDn` / `g` `G`  | Page up or down, top, bottom                                                              |
-| `space`                  | Mark or unmark the session, then move the way you last moved                              |
+| `space`                  | Mark or unmark the session, then move the way you last moved (not in details)             |
 | `a`                      | Mark or unmark everything                                                                 |
 | `o`                      | Mark sessions older than `--older-than` (14 days by default)                              |
 | `s`, `S`                 | Cycle the sort: size, age, project; reverse the order                                     |
 | `/`                      | Search by project, title, folder or id; `enter` keeps it, `esc` clears it                 |
 | `i`                      | Show the details of the session under the cursor                                          |
+| `c`                      | In the details, quit and run `claude --resume` on the session                             |
 | `?`                      | Help and legend                                                                           |
 | `enter`                  | Delete the marked sessions, after a confirmation box listing them                         |
 | `e`                      | Show the deletion errors                                                                  |
