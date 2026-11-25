@@ -66,22 +66,23 @@ npm link          # puts `ccleanup` on the PATH (or run `node dist/cli.js`)
 
 ### Keys
 
-| Key                      | Action                                                                                    |
-| ------------------------ | ----------------------------------------------------------------------------------------- |
-| Up, Down / `j` `k`       | Move                                                                                      |
-| `PgUp` `PgDn` / `g` `G`  | Page up or down, top, bottom                                                              |
-| `space`                  | Mark or unmark the session, then move the way you last moved (not in details)             |
-| `a`                      | Mark or unmark everything                                                                 |
-| `o`                      | Mark sessions older than `--older-than` (14 days by default)                              |
-| `s`, `S`                 | Cycle the sort: size, age, project; reverse the order                                     |
-| `/`                      | Search by project, title, folder or id; `enter` keeps it, `esc` clears it                 |
-| `i`                      | Show the details of the session under the cursor                                          |
-| `c`                      | In the details, quit and run `claude --resume` on the session                             |
-| `?`                      | Help and legend                                                                           |
-| `enter`                  | Delete the marked sessions, after a confirmation box listing them                         |
-| `e`                      | Show the deletion errors                                                                  |
-| `q`, `esc`               | Quit, or stop after the current deletion; `esc` first closes a panel or clears the search |
-| `Ctrl+C` twice, `Ctrl+Z` | Quit, suspend                                                                             |
+| Key                      | Action                                                                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Up, Down / `j` `k`       | Move                                                                                                                                          |
+| `PgUp` `PgDn` / `g` `G`  | Page up or down, top, bottom                                                                                                                  |
+| `space`                  | Mark or unmark the session, then move the way you last moved (not in details)                                                                 |
+| `a`                      | Mark or unmark everything                                                                                                                     |
+| `o`                      | Mark sessions older than `--older-than` (14 days by default)                                                                                  |
+| `s`, `S`                 | Cycle the sort: size, age, project; reverse the order                                                                                         |
+| `/`                      | Search by project, title, folder or id; `enter` keeps it, `esc` clears it                                                                     |
+| `i`                      | Show the details of the session under the cursor                                                                                              |
+| `c`                      | In the details, quit and run `claude --resume` on the session                                                                                 |
+| `?`                      | Help and legend                                                                                                                               |
+| `enter`                  | Delete the marked sessions, after a confirmation box listing them                                                                             |
+| `e`                      | Show the deletion errors                                                                                                                      |
+| `q`, `esc`               | Quit, or stop after the current deletion; `esc` first closes a panel or clears the search                                                     |
+| Click, wheel             | With `CCLEANUP_MOUSE=1`: click a row to select it, click the selected row to mark it, right-click to show its details; the wheel moves 3 rows |
+| `Ctrl+C` twice, `Ctrl+Z` | Quit, suspend                                                                                                                                 |
 
 ### Options
 
@@ -103,13 +104,14 @@ npm link          # puts `ccleanup` on the PATH (or run `node dist/cli.js`)
 
 ### Environment
 
-| Variable                  | Effect                                                                  |
-| ------------------------- | ----------------------------------------------------------------------- |
-| `CCLEANUP_LANG=fr\|en`    | Interface language; by default French for a French locale, else English |
-| `CCLEANUP_ASCII=1`        | Draw the interface with ASCII glyphs only                               |
-| `CCLEANUP_NOTIFY=<cmd>`   | Notification command, called with the text then the title               |
-| `NO_COLOR`, `FORCE_COLOR` | Disable or force colors                                                 |
-| `NO_UPDATE_NOTIFIER=1`    | Never look for a newer version (see below)                              |
+| Variable                  | Effect                                                                                       |
+| ------------------------- | -------------------------------------------------------------------------------------------- |
+| `CCLEANUP_LANG=fr\|en`    | Interface language; by default French for a French locale, else English                      |
+| `CCLEANUP_ASCII=1`        | Draw the interface with ASCII glyphs only                                                    |
+| `CCLEANUP_NOTIFY=<cmd>`   | Notification command, called with the text then the title                                    |
+| `NO_COLOR`, `FORCE_COLOR` | Disable or force colors                                                                      |
+| `NO_UPDATE_NOTIFIER=1`    | Never look for a newer version (see below)                                                   |
+| `CCLEANUP_MOUSE=1`        | Report clicks and the wheel to the interface; the terminal then selects text with Shift held |
 
 The colors follow the terminal: true color, 256 or 16 colors, or none. The background is asked to the terminal (OSC 11, then `COLORFGBG`), and a light background gets a darker palette.
 
@@ -151,6 +153,6 @@ A deleted session can no longer be resumed with `claude --resume`.
 | `npm run dev`         | Compile in watch mode                                                  |
 | `npm run clean`       | Remove `dist/`                                                         |
 | `npm test`            | Run the tests with `node --test` (Node 22.18+ for TS)                  |
-| `npm run check`       | `tsc --noEmit` + ESLint + Prettier (check)                             |
+| `npm run check`       | `tsc --noEmit` + ESLint + Prettier (check) + screenshots up to date    |
 | `npm run format`      | Prettier + ESLint (write)                                              |
 | `npm run screenshots` | Draw the screenshots of `assets/` from the real view (Node 22.18+)     |
