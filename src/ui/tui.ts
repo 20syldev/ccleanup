@@ -27,6 +27,7 @@ import { formatSize, type Lang } from "../lib/format.ts";
 import { sanitize } from "../lib/text.ts";
 
 import { createInput, type Input } from "./input.ts";
+import { type MouseEvent, rowAt, WHEEL_ROWS } from "./mouse.ts";
 import { createScreen, type Screen } from "./screen.ts";
 import { createTheme, darkFromEnv, probeDark, type Theme, type Tone } from "./theme.ts";
 import {
@@ -60,6 +61,7 @@ export interface TuiOptions {
     olderThan?: number;
     minSize?: number;
     includeRecent: boolean;
+    mouse?: boolean;
 }
 
 /**
@@ -202,6 +204,9 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
 
     // Whether the last frame drew the details: a short terminal cannot
     let detailsShown = false;
+
+    // Screen row of the first session drawn, to map a click to a session
+    let rowsTop = -1;
     let reversed = false;
 
     // Direction of the cursor after a mark: the way the user last moved
@@ -343,6 +348,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
             helpScroll,
             detailsOpen,
             detailsShown,
+            rowsTop,
             targets,
             hiddenTargets: targets.filter((session) => !shownKeys.has(keyOf(session))).length,
             oldShown: sessions.some((s) => markable(s) && matches(s, ageFilter)),
@@ -354,6 +360,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
         helpScroll = state.helpScroll;
         listHeight = state.listHeight;
         detailsShown = state.detailsShown;
+        rowsTop = state.rowsTop;
 
         if (animating(clock)) {
             frameTimer ??= setTimeout(() => {
@@ -701,6 +708,31 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
         render();
     };
 
+    // A click selects a row, a click on the selected row marks it, a right click shows its details.
+    const onMouse = (event: MouseEvent) => {
+        if (pasting || helpOpen || errorsOpen || confirming || tooSmall()) return;
+        if (ctrlArmedUntil > 0) {
+            ctrlArmedUntil = 0;
+            toast = undefined;
+        }
+        if (event.kind === "wheel") {
+            step = event.direction;
+            move(cursor + event.direction * WHEEL_ROWS);
+        } else {
+            const index = rowAt(event.y, rowsTop, listHeight, top, sessions.length);
+            if (index === undefined) return;
+            const selected = index === cursor;
+            const showing = detailsShown && selected;
+            if (!selected) step = index < cursor ? -1 : 1;
+            move(index);
+
+            // The details of the row, or none when they already showed it
+            if (event.button === "right") detailsOpen = !showing;
+            else if (selected && !deletion) toggle(sessions[index]);
+        }
+        render();
+    };
+
     // Sessions open at launch, once known.
     let openAtLaunch: ReadonlySet<string> | undefined;
     const applyOpen = (session: Session) => {
@@ -748,7 +780,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
         new Promise<TuiResult>((resolve) => {
             resolveRun = resolve;
             stdin.setRawMode(true);
-            input = createInput(stdin, onKey);
+            input = createInput(stdin, onKey, onMouse);
             stdout.on("resize", onResize);
             process.on("SIGTERM", onSigterm);
             process.on("SIGHUP", onSighup);
@@ -782,5 +814,5 @@ export async function runTui(options: TuiOptions): Promise<TuiResult> {
     // Ask the background color before the alternate screen.
     const dark = (await probeDark(stdin, stdout)) ?? darkFromEnv();
     const theme = createTheme(stdout, { dark });
-    return createApp(options, theme, createScreen(stdout)).run();
+    return createApp(options, theme, createScreen(stdout, { mouse: options.mouse })).run();
 }

@@ -45,10 +45,11 @@ export interface DeletionError {
  * progress in sessions and bytes. `sessions` are the rows shown, after the search
  * `query`, out of `total` measured ones; `searching` is set while the query is typed.
  * `targets` are the sessions a confirmed deletion would remove, `hiddenTargets` of them
- * out of the search. `view` writes back four layout values: `top`, the first visible
+ * out of the search. `view` writes back five layout values: `top`, the first visible
  * row; `errorsScroll` and `helpScroll`, clamped to their panels; `listHeight`, the rows
  * of the list, which sets the page size of PgUp and PgDn; `detailsShown`, whether the
- * details are really drawn, as a short terminal cannot hold them.
+ * details are really drawn, as a short terminal cannot hold them; `rowsTop`, the screen
+ * row of the first session, or -1 when no list is drawn, to map a click to a session.
  */
 export interface ViewState {
     lang: Lang;
@@ -83,6 +84,7 @@ export interface ViewState {
     helpScroll: number;
     detailsOpen: boolean;
     detailsShown: boolean;
+    rowsTop: number;
     targets: Session[];
     hiddenTargets: number;
     oldShown: boolean;
@@ -984,6 +986,7 @@ export function view(state: ViewState, cols: number, rows: number): string[] {
     const current = state.sessions[state.cursor];
     let details: string[] = [];
     state.detailsShown = false;
+    state.rowsTop = -1;
     if (state.detailsOpen && current && !state.errorsOpen && height - DETAILS_ROWS >= 3) {
         details = detailsBox(state, current, sessionKey(current), cols);
         state.detailsShown = true;
@@ -1020,6 +1023,7 @@ export function view(state: ViewState, cols: number, rows: number): string[] {
 
         state.listHeight = withEmbers ? shown : height;
         lines.push(columnHeader(state, cols, project));
+        state.rowsTop = lines.length;
         const rows = state.sessions
             .slice(state.top, state.top + (withEmbers ? shown : height))
             .map((session, i) =>
