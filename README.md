@@ -145,6 +145,16 @@ Only entries named after a session UUID are ever listed or deleted. Everything e
 
 A deleted session can no longer be resumed with `claude --resume`.
 
+## Keeping sessions longer
+
+Claude Code deletes on its own, without a message, the sessions older than 30 days. To keep them, raise `cleanupPeriodDays` in `~/.claude/settings.json` (`0` is refused, so use a large number):
+
+```json
+{ "cleanupPeriodDays": 3650 }
+```
+
+Sessions then pile up until you remove them, and that is where `ccleanup` is useful: instead of Claude Code dropping everything after 30 days, you pick what goes, biggest and oldest first. `ccleanup` never edits this file.
+
 ## Scripts
 
 | Script                | Description                                                            |
