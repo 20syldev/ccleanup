@@ -105,6 +105,8 @@ interface RowOptions {
     rowState?: RowState;
 }
 
+const UPDATE_COMMAND = "npm i -g ccleanup@latest";
+const INDENT = 10;
 const SIZE_WIDTH = 9;
 const AGE_WIDTH = 5;
 const PREFIX_WIDTH = 4;
@@ -1092,12 +1094,14 @@ export function table(
  * @param result - Deleted sessions, freed bytes and failures of the run
  * @param theme - Theme of the output: colors, depth and glyph set
  * @param lang - Language of the texts
+ * @param update - Newer version, running one and terminal width, when an update is available
  * @returns The lines to print; the tone of the second line grows with the freed space
  */
 export function exitSummary(
     result: { deleted: number; freed: number; errors: DeletionError[] },
     theme: Theme,
     lang: Lang,
+    update?: { latest: string; current: string; cols: number },
 ): string[] {
     const m = messages(lang);
     const lines: string[] = [];
@@ -1122,6 +1126,20 @@ export function exitSummary(
             );
             lines.push(`    ${theme.paint(message, { fg: "muted" })}`);
         }
+    }
+    if (update) {
+        const sentence = m.updateAvailable(update.latest, update.current);
+        const text = theme.paint(sentence, { fg: "muted" });
+        const command = theme.paint(UPDATE_COMMAND, { fg: "accent" });
+
+        // Under the wordmark text, or against the edge when even the sentence would not fit
+        const indent = " ".repeat(INDENT + width(sentence) <= update.cols ? INDENT : 0);
+        const fits = indent.length + width(sentence) + 1 + UPDATE_COMMAND.length <= update.cols;
+
+        // After a gap when failures were listed; the command drops a line when it would wrap
+        if (result.errors.length > 0) lines.push("");
+        if (fits) lines.push(`${indent}${text} ${command}`);
+        else lines.push(`${indent}${text}`, `${indent}${command}`);
     }
     return lines;
 }
