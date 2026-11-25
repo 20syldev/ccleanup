@@ -133,7 +133,7 @@ ccleanup  Nothing deleted, see you next time.
           1.1.0 is available, you have 1.0.3: npm i -g ccleanup@latest
 ```
 
-This is the only network call `ccleanup` makes. While the interface is open, it asks the npm registry (`https://registry.npmjs.org/ccleanup/latest`) for the latest version, at most once a day, and keeps the answer in `$XDG_CACHE_HOME/ccleanup/update.json` (`~/.cache` by default). The request carries nothing about you or your sessions, never delays the start or the exit, and is dropped when it is not over in time. Nothing is asked with `--list`, `--check`, `--yes` or `--dry-run`, under `npx` or in CI, nor when `NO_UPDATE_NOTIFIER` is set.
+This is the only network call `ccleanup` makes. While the interface is open, it asks the npm registry (`https://registry.npmjs.org/ccleanup/latest`) for the latest version, at most every 12 hours, and keeps the answer in `$XDG_CACHE_HOME/ccleanup/update.json` (`~/.cache` by default). The request carries nothing about you or your sessions, never delays the start or the exit, and is dropped when it is not over in time. Nothing is asked with `--list`, `--check`, `--yes` or `--dry-run`, under `npx` or in CI, nor when `NO_UPDATE_NOTIFIER` is set.
 
 ## What is deleted, and what is not
 
