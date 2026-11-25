@@ -189,15 +189,24 @@
 <text x="505.20000000000005" y="127.06" textLength="25.200000000000003" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee">the</text>
 <text x="538.8000000000001" y="127.06" textLength="58.800000000000004" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee">staging</text>
 <text x="606" y="127.06" textLength="58.800000000000004" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee">cluster</text>
-<circle cx="82.68" cy="147.77" r="1.3" fill="#e4ba87"/>
-<circle cx="146.52" cy="147.77" r="1.3" fill="#eec891"/><circle cx="149.88" cy="135.23" r="1.3" fill="#eec891"/>
-<circle cx="233.88" cy="135.23" r="1.3" fill="#8b3c2b"/>
-<circle cx="322.92" cy="139.41" r="1.3" fill="#a9664a"/>
-<circle cx="334.68" cy="143.59" r="1.3" fill="#c69068"/>
-<circle cx="356.52" cy="143.59" r="1.3" fill="#d09e73"/>
-<circle cx="401.88" cy="139.41" r="1.3" fill="#f8d69c"/><circle cx="401.88" cy="147.77" r="1.3" fill="#f8d69c"/>
-<circle cx="679.08" cy="143.59" r="1.3" fill="#daac7d"/>
-<circle cx="695.88" cy="135.23" r="1.3" fill="#954a35"/>
-<circle cx="835.32" cy="139.41" r="1.3" fill="#bc825e"/>
+<circle cx="37.32" cy="147.77" r="1.3" fill="#a76348"/>
+<circle cx="96.12" cy="139.41" r="1.3" fill="#9a513a"/>
+<circle cx="129.72" cy="143.59" r="1.3" fill="#a35e44"/>
+<circle cx="205.32000000000002" cy="147.77" r="1.3" fill="#ae6e50"/>
+<circle cx="222.12000000000003" cy="143.59" r="1.3" fill="#9f5940"/><circle cx="225.48000000000002" cy="143.59" r="1.3" fill="#9f5940"/>
+<circle cx="233.88" cy="147.77" r="1.3" fill="#a86549"/>
+<circle cx="247.32000000000002" cy="147.77" r="1.3" fill="#a56246"/>
+<circle cx="255.72000000000003" cy="147.77" r="1.3" fill="#a9674a"/>
+<circle cx="272.52" cy="147.77" r="1.3" fill="#ad6d4e"/>
+<circle cx="289.32" cy="139.41" r="1.3" fill="#974e38"/>
+<circle cx="418.68" cy="139.41" r="1.3" fill="#964c36"/>
+<circle cx="440.52" cy="143.59" r="1.3" fill="#9e573e"/>
+<circle cx="499.32" cy="139.41" r="1.3" fill="#994f39"/>
+<circle cx="549.72" cy="143.59" r="1.3" fill="#a46045"/>
+<circle cx="670.6800000000001" cy="143.59" r="1.3" fill="#a25c42"/>
+<circle cx="684.12" cy="147.77" r="1.3" fill="#ac6b4d"/>
+<circle cx="729.48" cy="143.59" r="1.3" fill="#a05a41"/>
+<circle cx="763.08" cy="143.59" r="1.3" fill="#9b533c"/>
+<circle cx="801.72" cy="147.77" r="1.3" fill="#ab694c"/>
 </g>
 </svg>

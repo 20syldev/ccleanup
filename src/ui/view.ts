@@ -2,7 +2,7 @@ import { type Session, sessionKey } from "../core/scan.ts";
 import type { SortMode } from "../core/select.ts";
 import { type KeyLabel, type KeyName, messages } from "../i18n/messages.ts";
 import { DAY, formatAge, formatDuration, formatSize, GB, type Lang, MB } from "../lib/format.ts";
-import { cut, fit, skip, width } from "../lib/text.ts";
+import { cut, fit, skip, stripAnsi, width } from "../lib/text.ts";
 
 import { line, type Segment, selectionStyle } from "./line.ts";
 import { logo, LOGO_WIDTH, wordmark } from "./logo.ts";
@@ -125,8 +125,9 @@ const FIREFLY_TRAIL_MS = 500;
 
 // Top speed of the firefly across, in braille dots per millisecond
 const FIREFLY_SPEED = 0.02;
-const EMBER_SPAWN_MS = 110;
-const EMBER_LIFE_MS = 1300;
+const EMBER_SPAWN_MS = 22;
+const EMBER_LIFE_MS = 2000;
+const EMBER_ROWS = 3;
 const BRAILLE = 0x2800;
 
 // Braille dot bits, top to bottom, for the left and right columns
@@ -287,45 +288,57 @@ function embersActive(state: ViewState): boolean {
 }
 
 /**
- * Embers rising under the last row of the list, drawn with braille dots; the list grows
- * as sessions are measured, so they follow the newest rows down.
+ * Embers rising under the last row of the list, drawn with braille dots over a band as wide
+ * as the footer text; the list grows as sessions are measured, so they follow the newest
+ * rows down.
  *
  * One ember is born every EMBER_SPAWN_MS at a column taken from the hash of its birth
- * tick, then climbs the four dot rows and cools down: the frame depends only on the clock,
- * so the view stays a pure function of its state.
+ * tick, then climbs the whole band, drifting sideways, and cools down: the frame depends
+ * only on the clock, so the view stays a pure function of its state.
  *
  * @param state - Frame state, read only
  * @param cols - Terminal width in cells
- * @returns The painted line, aligned with the data columns
+ * @param rows - Rows of the band, at most EMBER_ROWS
+ * @returns The painted lines, aligned with the footer text
  */
-function emberLine(state: ViewState, cols: number): string {
+function emberBand(state: ViewState, cols: number, rows: number): string[] {
     const { theme, clock, scan } = state;
-    const cells = cols - SPARE - PREFIX_WIDTH;
-    if (cells <= 0) return "";
-    const dots = Array<number>(cells).fill(0);
-    const heat = Array<number>(cells).fill(0);
+    const text = stripAnsi(footer(state, cols));
+    const from = text.length - text.trimStart().length;
+    const cells = Math.max(0, width(text.trimEnd()) - from);
+    const across = cells * 2;
+    const tall = rows * 4;
+    const dots = Array.from({ length: rows }, () => Array<number>(cells).fill(0));
+    const heat = Array.from({ length: rows }, () => Array<number>(cells).fill(0));
     const first = Math.ceil(Math.max(clock - EMBER_LIFE_MS, scan.startedAt) / EMBER_SPAWN_MS);
     const last = Math.floor(Math.min(clock, scan.endedAt ?? clock) / EMBER_SPAWN_MS);
     for (let tick = first; tick <= last; tick++) {
         const age = clock - tick * EMBER_SPAWN_MS;
         if (age < 0 || age >= EMBER_LIFE_MS) continue;
         const h = hash(tick);
-        const cell = h % cells;
-        const height = 1 - age / EMBER_LIFE_MS;
-        const row = Math.min(3, Math.floor(height * 4));
-        dots[cell] = dots[cell]! | BRAILLE_DOTS[row]![(h >>> 16) & 1]!;
-        heat[cell] = Math.max(heat[cell]!, height);
+        const life = age / EMBER_LIFE_MS;
+
+        // A column of dots, nudged sideways as it climbs from the bottom dot row to the top
+        const x = Math.round((h % across) + Math.sin(tick * 0.7 + age / 260) * 1.6 * life);
+        const y = Math.round((tall - 1) * (1 - life));
+        if (x < 0 || x >= across) continue;
+        const row = y >> 2;
+        const cell = x >> 1;
+        dots[row]![cell] = dots[row]![cell]! | BRAILLE_DOTS[y & 3]![x & 1]!;
+        heat[row]![cell] = Math.max(heat[row]![cell]!, 1 - life);
     }
-    const segments: Segment[] = [[" ".repeat(PREFIX_WIDTH)]];
-    dots.forEach((bits, i) => {
-        if (bits === 0) segments.push([" "]);
-        else
-            segments.push([
-                String.fromCodePoint(BRAILLE + bits),
-                tint(theme, "ember", "glow", heat[i]!),
-            ]);
+    return dots.map((bits, row) => {
+        const segments: Segment[] = [[" ".repeat(from)]];
+        bits.forEach((value, i) => {
+            if (value === 0) segments.push([" "]);
+            else
+                segments.push([
+                    String.fromCodePoint(BRAILLE + value),
+                    tint(theme, "ember", "glow", heat[row]![i]!),
+                ]);
+        });
+        return line(theme, segments, cols - SPARE);
     });
-    return line(theme, segments, cols - SPARE);
 }
 
 /**
@@ -1006,36 +1019,28 @@ export function view(state: ViewState, cols: number, rows: number): string[] {
     } else {
         const project = projectWidth(state.sessions, cols);
 
-        // The embers take one row, kept free so the cursor never hides behind them.
-        const embers = embersActive(state) && height >= 3;
-        const shown = embers ? height - 1 : height;
         let top = state.top;
         if (state.cursor < top) top = state.cursor;
-        if (state.cursor >= top + shown) top = state.cursor - shown + 1;
-        state.top = Math.max(0, Math.min(top, Math.max(0, state.sessions.length - shown)));
-
-        // Embers rise under the last row, or at the bottom of a long list.
-        const withEmbers = embers;
-        const frontier = Math.min(state.sessions.length - state.top, shown);
-        if (!withEmbers) {
-            state.top = Math.max(0, Math.min(state.top, state.sessions.length - height));
-        }
-
-        state.listHeight = withEmbers ? shown : height;
+        if (state.cursor >= top + height) top = state.cursor - height + 1;
+        state.top = Math.max(0, Math.min(top, Math.max(0, state.sessions.length - height)));
+        state.listHeight = height;
         lines.push(columnHeader(state, cols, project));
         state.rowsTop = lines.length;
-        const rows = state.sessions
-            .slice(state.top, state.top + (withEmbers ? shown : height))
-            .map((session, i) =>
-                sessionRow(state, session, cols, project, {
-                    prefix: true,
-                    selected: state.top + i === state.cursor,
-                    marked: state.marked.has(sessionKey(session)),
-                    markable: state.markable(session),
-                    rowState: state.states.get(sessionKey(session)),
-                }),
-            );
-        if (withEmbers) rows.splice(frontier, 0, emberLine(state, cols));
+        const rows = state.sessions.slice(state.top, state.top + height).map((session, i) =>
+            sessionRow(state, session, cols, project, {
+                prefix: true,
+                selected: state.top + i === state.cursor,
+                marked: state.marked.has(sessionKey(session)),
+                markable: state.markable(session),
+                rowState: state.states.get(sessionKey(session)),
+            }),
+        );
+
+        // The embers only fill the free rows under the last session, so the list never resizes
+        const free = height - rows.length;
+        if (embersActive(state) && free > 0) {
+            rows.push(...emberBand(state, cols, Math.min(EMBER_ROWS, free)));
+        }
         lines.push(...rows);
     }
     while (lines.length < rows - 2 - details.length) lines.push("");
