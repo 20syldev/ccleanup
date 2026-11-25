@@ -61,6 +61,7 @@ export interface TuiOptions {
     olderThan?: number;
     minSize?: number;
     includeRecent: boolean;
+    tempRoot?: string;
     mouse?: boolean;
 }
 
@@ -474,7 +475,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
             states.set(key, "deleting");
             requestRender();
             try {
-                await removeSession(session.configDir, session);
+                await removeSession(session.configDir, session, options.tempRoot);
                 states.set(key, "deleted");
                 marked.delete(key);
                 errors.delete(key);
@@ -746,6 +747,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
             now: options.now,
             recentMs: options.recentMs,
             open: new Set<string>(),
+            tempRoot: options.tempRoot,
         };
         void options.open.then((open) => {
             openAtLaunch = open;
