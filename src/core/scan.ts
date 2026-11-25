@@ -70,6 +70,9 @@ export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 const EDGE = 64 * 1024;
 const TITLE_MAX = 200;
 
+// Longest project folder name Claude Code keeps before it adds a hash
+const PROJECT_DIR_MAX = 200;
+
 export const CONCURRENCY = 8;
 
 /**
@@ -234,6 +237,21 @@ export function shortProject(cwd: string | undefined, projectDir: string): strin
 }
 
 /**
+ * Tells whether a project folder was named after a working directory, the way Claude Code
+ * names them: each character other than a letter or a digit turned into a dash. A longer
+ * name is cut and given a hash, so only its start is compared, as Claude Code does.
+ *
+ * @param cwd - Working directory
+ * @param projectDir - Name of the project folder
+ * @returns True when the folder belongs to that working directory
+ */
+export function ownsProjectDir(cwd: string, projectDir: string): boolean {
+    const name = cwd.replace(/[^a-zA-Z0-9]/g, "-");
+    if (name.length <= PROJECT_DIR_MAX) return name === projectDir;
+    return projectDir.startsWith(`${name.slice(0, PROJECT_DIR_MAX)}-`);
+}
+
+/**
  * Finds the first value a picker returns over a list of records.
  *
  * @param records - Records to scan
@@ -269,7 +287,8 @@ function field(record: JsonRecord, key: string): string | undefined {
 /**
  * Reads the title, the project and the working directory of a transcript.
  *
- * The title is the latest AI title, else the first prompt, else the last prompt.
+ * The title is the latest AI title, else the first prompt, else the last prompt. The cwd is
+ * the one of the project folder, where `claude --resume` finds the session, else the first.
  *
  * @param transcript - Path of the .jsonl transcript
  * @param projectDir - Encoded project folder name, the fallback for the project label
@@ -290,6 +309,10 @@ async function describe(
     const lastPrompt = (r: JsonRecord) =>
         r.type === "last-prompt" ? field(r, "lastPrompt") : undefined;
     const cwdOf = (r: JsonRecord) => field(r, "cwd");
+    const ownCwd = (r: JsonRecord) => {
+        const value = cwdOf(r);
+        return value !== undefined && ownsProjectDir(value, projectDir) ? value : undefined;
+    };
 
     const title = clean(
         find(tail, aiTitle, true) ??
@@ -297,7 +320,11 @@ async function describe(
             find(head, promptText) ??
             find(tail, lastPrompt, true),
     );
-    const found = find(head, cwdOf) ?? find(tail, cwdOf, true);
+    const found =
+        find(tail, ownCwd, true) ??
+        find(head, ownCwd) ??
+        find(head, cwdOf) ??
+        find(tail, cwdOf, true);
     const cwd = found === undefined ? undefined : sanitize(found);
     const started = Date.parse(find(head, (r) => field(r, "timestamp")) ?? "");
     const startedAt = Number.isNaN(started) ? undefined : started;

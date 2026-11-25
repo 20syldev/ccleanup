@@ -10,6 +10,7 @@ const ALPHA = "11111111-1111-4111-8111-111111111111";
 const BETA = "22222222-2222-4222-8222-222222222222";
 const ORPHAN = "33333333-3333-4333-8333-333333333333";
 const TWIN = "55555555-5555-4555-8555-555555555555";
+const MOVED = "66666666-6666-4666-8666-666666666666";
 const DAY = 24 * 3_600_000;
 const RECENT_MS = 30 * 60_000;
 const BEL = String.fromCharCode(0x07);
@@ -140,6 +141,51 @@ describe("measureEntry", () => {
         const session = (await measureEntry(entry, options()))!;
         assert.equal(session.title, "beta prompt");
         assert.equal(session.recent, true);
+    });
+
+    it("takes the cwd of the project folder when the session moved", async () => {
+        const moved = await mkdtemp(join(tmpdir(), "ccleanup-moved-"));
+        try {
+            const path = join(moved, "projects", "-home-test-gamma-app", `${MOVED}.jsonl`);
+            await mkdir(dirname(path), { recursive: true });
+            await writeFile(
+                path,
+                jsonl(
+                    { type: "user", cwd: "/home/test", message: { content: "start at home" } },
+                    { type: "user", cwd: "/home/test/gamma.app" },
+                    { type: "user", cwd: "/home/test/gamma.app/src" },
+                ),
+            );
+            const entry = (await discover(moved))[0]!;
+            const session = (await measureEntry(entry, options()))!;
+            assert.equal(session.cwd, "/home/test/gamma.app");
+            assert.equal(session.project, "test/gamma.app");
+        } finally {
+            await rm(moved, { recursive: true, force: true });
+        }
+    });
+
+    it("matches a long project folder that Claude Code cut and gave a hash", async () => {
+        const moved = await mkdtemp(join(tmpdir(), "ccleanup-long-"));
+        try {
+            const cwd = `/home/test/${"verylongsegment/".repeat(14)}app`;
+            const folder = `${cwd.replace(/[^a-zA-Z0-9]/g, "-").slice(0, 200)}-1x2y3z`;
+            const path = join(moved, "projects", folder, `${MOVED}.jsonl`);
+            await mkdir(dirname(path), { recursive: true });
+            await writeFile(
+                path,
+                jsonl(
+                    { type: "user", cwd: "/home/test", message: { content: "start at home" } },
+                    { type: "user", cwd },
+                ),
+            );
+            const entry = (await discover(moved))[0]!;
+            const session = (await measureEntry(entry, options()))!;
+            assert.equal(session.cwd, cwd);
+            assert.equal(session.project, "verylongsegment/app");
+        } finally {
+            await rm(moved, { recursive: true, force: true });
+        }
     });
 
     it("measures a folder without transcript, with a project guessed from its name", async () => {
