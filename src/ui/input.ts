@@ -13,7 +13,11 @@ const REPLY = new RegExp(
 // The start of a reply cut at the end of a chunk, kept until the next chunk
 const PARTIAL = new RegExp(String.raw`${ESC}(?:\][^${BEL}${ESC}]*${ESC}?|\[\?[\d;]*)?$`);
 
-const CARRY_MS = 50;
+// Wait for the rest of a cut sequence before a lone Esc, as long as Vim does
+const CARRY_MS = 100;
+
+// What readline reports for Esc, sent without its own half-second wait for a sequence
+const ESCAPE: Key = { sequence: ESC, name: "escape", ctrl: false, meta: false, shift: false };
 
 /**
  * Keyboard input of the interface; `close` detaches it from stdin.
@@ -43,7 +47,10 @@ export function createInput(
 
     const flush = () => {
         timer = undefined;
-        if (carry) relay.write(carry);
+
+        // Nothing followed the escape byte: a lone Esc
+        if (carry === ESC) onKey(undefined, ESCAPE);
+        else if (carry) relay.write(carry);
         carry = "";
     };
 
