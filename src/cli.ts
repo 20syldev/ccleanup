@@ -186,6 +186,7 @@ async function main(): Promise<number> {
             olderThan: options.olderThan,
             minSize: options.minSize,
             includeRecent: options.includeRecent,
+            mouse: Boolean(process.env.CCLEANUP_MOUSE) && process.env.CCLEANUP_MOUSE !== "0",
         }).catch(async (error: unknown) => {
             await update.finish();
             throw error;
