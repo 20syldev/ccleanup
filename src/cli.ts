@@ -9,6 +9,7 @@ import { removeSession, UnsafePathError } from "./core/remove.ts";
 import { resumePlan, runResume } from "./core/resume.ts";
 import { discover, scan, type Session } from "./core/scan.ts";
 import { hasFilter, select, sortSessions } from "./core/select.ts";
+import { claudeTempRoot } from "./core/temp.ts";
 import { startUpdateCheck } from "./core/update.ts";
 import { type Messages, messages } from "./i18n/messages.ts";
 import { detectLang, formatSize, type Lang, tildify } from "./lib/format.ts";
@@ -95,7 +96,12 @@ function reportEmpty(searched: string[], denied: string[], m: Messages): number 
  * @param lang - Language of the summary
  * @returns Number of failed deletions, each already reported on stderr
  */
-async function deleteAll(configDirs: string[], sessions: Session[], lang: Lang): Promise<number> {
+async function deleteAll(
+    configDirs: string[],
+    sessions: Session[],
+    lang: Lang,
+    tempRoot: string | undefined,
+): Promise<number> {
     let deleted = 0;
     let failed = 0;
     let freed = 0;
@@ -107,7 +113,7 @@ async function deleteAll(configDirs: string[], sessions: Session[], lang: Lang):
     for (const session of sessions) {
         if (open.has(session.id.toLowerCase())) continue;
         try {
-            await removeSession(session.configDir, session);
+            await removeSession(session.configDir, session, tempRoot);
             deleted++;
             freed += session.bytes;
         } catch (error) {
@@ -151,6 +157,7 @@ async function main(): Promise<number> {
     if (options.yes && !hasFilter(options)) throw new UsageError("yesNeedsFilter", "--yes");
 
     const now = Date.now();
+    const tempRoot = await claudeTempRoot();
     const search = await findConfigDirs(options.claudeDirs);
     const denied = new Set(search.denied);
     const onDenied = (path: string) => denied.add(path);
@@ -187,6 +194,7 @@ async function main(): Promise<number> {
             olderThan: options.olderThan,
             minSize: options.minSize,
             includeRecent: options.includeRecent,
+            tempRoot,
             mouse: Boolean(process.env.CCLEANUP_MOUSE) && process.env.CCLEANUP_MOUSE !== "0",
         }).catch(async (error: unknown) => {
             await update.finish();
@@ -207,7 +215,11 @@ async function main(): Promise<number> {
     }
 
     const open = await openSessions(search.dirs);
-    const sessions = await scan(search.dirs, { now, recentMs: RECENT_MS, open }, onDenied);
+    const sessions = await scan(
+        search.dirs,
+        { now, recentMs: RECENT_MS, open, tempRoot },
+        onDenied,
+    );
     if (sessions.length === 0) return reportEmpty(search.searched, [...denied], m);
     if (denied.size > 0) console.error(m.denied([...denied].map((path) => tildify(path))));
     if (options.check) {
@@ -233,7 +245,7 @@ async function main(): Promise<number> {
             console.log(m.wouldDelete(targets.length, formatSize(bytes, lang)));
             return 0;
         }
-        return (await deleteAll(search.dirs, targets, lang)) > 0 ? 1 : 0;
+        return (await deleteAll(search.dirs, targets, lang, tempRoot)) > 0 ? 1 : 0;
     }
 
     const shown = hasFilter(options) ? targets : sessions;
