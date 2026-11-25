@@ -43,12 +43,16 @@ const TERMINAL_ROWS = SHAPE_ROWS / 2;
 
 export const LOGO_WIDTH = SHAPE[0]!.length + 1;
 
+// The mascot alone, with the column its shadow falls on
+export const MASCOT_WIDTH = MASCOT[0]!.length + 1;
+
 const FULL = String.fromCodePoint(0x2588);
 const UPPER = String.fromCodePoint(0x2580);
 const LOWER = String.fromCodePoint(0x2584);
 
-// Painted logo per theme: it never changes while the interface runs
+// Painted logo and mascot per theme: they never change while the interface runs
 const logoCache = new WeakMap<Theme, string[]>();
+const mascotCache = new WeakMap<Theme, string[]>();
 
 /**
  * Tells whether a pixel of the mascot or the word is on.
@@ -111,11 +115,12 @@ function colorAt(theme: Theme, row: number, col: number): Rgb | undefined {
  *
  * @param theme - Theme of the output, with at least 256 colors
  * @param row - Terminal row, 0 at the top
- * @returns The painted row, LOGO_WIDTH cells wide
+ * @param cells - Columns drawn from the left, the whole logo by default
+ * @returns The painted row, that many cells wide
  */
-function gradientRow(theme: Theme, row: number): string {
+function gradientRow(theme: Theme, row: number, cells = LOGO_WIDTH): string {
     let out = "";
-    for (let col = 0; col < LOGO_WIDTH; col++) {
+    for (let col = 0; col < cells; col++) {
         const upper = colorAt(theme, row * 2, col);
         const lower = colorAt(theme, row * 2 + 1, col);
         if (upper && lower) out += theme.paint(UPPER, { rgb: upper, bgRgb: lower });
@@ -132,11 +137,12 @@ function gradientRow(theme: Theme, row: number): string {
  *
  * @param theme - Theme of the output
  * @param row - Terminal row, 0 at the top
- * @returns The painted row, LOGO_WIDTH cells wide
+ * @param cells - Columns drawn from the left, the whole logo by default
+ * @returns The painted row, that many cells wide
  */
-function flatRow(theme: Theme, row: number): string {
+function flatRow(theme: Theme, row: number, cells = LOGO_WIDTH): string {
     let out = "";
-    for (let col = 0; col < LOGO_WIDTH; col++) {
+    for (let col = 0; col < cells; col++) {
         const high = pixel(row * 2, col);
         const low = pixel(row * 2 + 1, col);
         out += high && low ? FULL : high ? UPPER : low ? LOWER : " ";
@@ -159,6 +165,24 @@ export function logo(theme: Theme): string[] {
         ? Array.from({ length: TERMINAL_ROWS }, (_, row) => draw(row))
         : [theme.paint(WORD, { fg: "accent", bold: true })];
     logoCache.set(theme, rows);
+    return rows;
+}
+
+/**
+ * Draws the spark mascot alone, as it stands at the left of the logo, painted once per theme.
+ *
+ * @param theme - Theme of the output: the colors of the logo from 256 colors up, one color below
+ * @returns Three rows of MASCOT_WIDTH cells, or none without Unicode
+ */
+export function mascot(theme: Theme): string[] {
+    const cached = mascotCache.get(theme);
+    if (cached) return cached;
+    const draw = (row: number) =>
+        theme.depth >= 8
+            ? gradientRow(theme, row, MASCOT_WIDTH)
+            : flatRow(theme, row, MASCOT_WIDTH);
+    const rows = theme.unicode ? Array.from({ length: TERMINAL_ROWS }, (_, row) => draw(row)) : [];
+    mascotCache.set(theme, rows);
     return rows;
 }
 

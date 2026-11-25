@@ -7,6 +7,7 @@ import { cut, fit, skip, width } from "../lib/text.ts";
 import { line, type Segment, selectionStyle } from "./line.ts";
 import { logo, LOGO_WIDTH, wordmark } from "./logo.ts";
 import { confirmBox, DETAILS_ROWS, detailsBox, helpBox, overlay } from "./panels.ts";
+import { tooSmallView } from "./small.ts";
 import { mix, type Style, type Theme, type Tone } from "./theme.ts";
 
 /**
@@ -954,21 +955,13 @@ function errorsPanel(state: ViewState, cols: number, height: number): string[] {
  *
  * @param state - Frame state; top, errorsScroll and listHeight are written back
  * @param cols - Terminal width in cells
- * @param rows - Terminal height; under 40 x 8 the frame only says the terminal is too small
+ * @param rows - Terminal height; under 40 x 8 the frame asks for a bigger terminal
  * @returns One string per terminal row
  */
 export function view(state: ViewState, cols: number, rows: number): string[] {
     const { theme, lang } = state;
-    if (cols < MIN_COLS || rows < MIN_ROWS) {
-        const text = messages(lang).tooSmall(cols, rows, MIN_COLS, MIN_ROWS);
-        const lines = Array<string>(Math.max(0, Math.floor(rows / 2) - 1)).fill("");
-        for (const part of text.split("\n")) {
-            const short = cut(part, cols - 1, theme.glyphs.ellipsis);
-            const indent = " ".repeat(Math.max(0, Math.floor((cols - width(short)) / 2)));
-            lines.push(indent + theme.paint(short, { fg: "warn", bold: true }));
-        }
-        return lines;
-    }
+    if (cols < MIN_COLS || rows < MIN_ROWS)
+        return tooSmallView(theme, lang, cols, rows, { cols: MIN_COLS, rows: MIN_ROWS });
 
     // The compact header gives the details the logo's rows.
     const roomy = rows >= FULL_ROWS + (state.detailsOpen ? DETAILS_ROWS : 0) && theme.unicode;

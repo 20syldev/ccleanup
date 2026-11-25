@@ -59,6 +59,7 @@ export interface Glyphs {
     err: string;
     sortDown: string;
     sortUp: string;
+    times: string;
     bar: string;
     track: string;
     spinner: string[];
@@ -167,6 +168,7 @@ const UNICODE_GLYPHS: Glyphs = {
     err: cp(0x2717),
     sortDown: cp(0x2193),
     sortUp: cp(0x2191),
+    times: cp(0x00d7),
     bar: cp(0x2501),
     track: cp(0x2501),
     spinner: [0x280b, 0x2819, 0x2839, 0x2838, 0x283c, 0x2834, 0x2826, 0x2827, 0x2807, 0x280f].map(
@@ -193,6 +195,7 @@ const ASCII_GLYPHS: Glyphs = {
     err: "!",
     sortDown: "v",
     sortUp: "^",
+    times: "x",
     bar: "#",
     track: "-",
     spinner: ["|", "/", "-", "\\"],
