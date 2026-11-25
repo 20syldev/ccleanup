@@ -186,6 +186,7 @@ function state(dark: boolean, scene: Partial<ViewState> = {}): ViewState {
         helpOpen: false,
         helpScroll: 0,
         detailsOpen: false,
+        detailsShown: false,
         targets: [],
         hiddenTargets: 0,
         oldShown: true,

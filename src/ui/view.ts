@@ -45,9 +45,10 @@ export interface DeletionError {
  * progress in sessions and bytes. `sessions` are the rows shown, after the search
  * `query`, out of `total` measured ones; `searching` is set while the query is typed.
  * `targets` are the sessions a confirmed deletion would remove, `hiddenTargets` of them
- * out of the search. `view` writes back three layout values: `top`, the first visible
+ * out of the search. `view` writes back four layout values: `top`, the first visible
  * row; `errorsScroll` and `helpScroll`, clamped to their panels; `listHeight`, the rows
- * of the list, which sets the page size of PgUp and PgDn.
+ * of the list, which sets the page size of PgUp and PgDn; `detailsShown`, whether the
+ * details are really drawn, as a short terminal cannot hold them.
  */
 export interface ViewState {
     lang: Lang;
@@ -81,6 +82,7 @@ export interface ViewState {
     helpOpen: boolean;
     helpScroll: number;
     detailsOpen: boolean;
+    detailsShown: boolean;
     targets: Session[];
     hiddenTargets: number;
     oldShown: boolean;
@@ -891,7 +893,10 @@ function footer(state: ViewState, cols: number): string {
     const step = state.step > 0 ? theme.glyphs.sortDown : theme.glyphs.sortUp;
     let items = contextKeys(state).map(([key, label, priority]) => {
         const name = key in m.keyNames ? m.keyNames[key as KeyName] : key;
-        const text = label === "mark" ? `${m.keys.mark} ${step}` : m.keys[label];
+
+        // No arrow while the details are shown: space marks without moving
+        const text =
+            label === "mark" && !state.detailsShown ? `${m.keys.mark} ${step}` : m.keys[label];
         return { name, label: text, priority };
     });
     const total = () =>
@@ -978,8 +983,10 @@ export function view(state: ViewState, cols: number, rows: number): string[] {
     // The details take the bottom of the list area.
     const current = state.sessions[state.cursor];
     let details: string[] = [];
+    state.detailsShown = false;
     if (state.detailsOpen && current && !state.errorsOpen && height - DETAILS_ROWS >= 3) {
         details = detailsBox(state, current, sessionKey(current), cols);
+        state.detailsShown = true;
         height -= details.length;
     }
 

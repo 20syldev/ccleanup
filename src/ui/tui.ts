@@ -196,6 +196,9 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
     let helpOpen = false;
     let helpScroll = 0;
     let detailsOpen = false;
+
+    // Whether the last frame drew the details: a short terminal cannot
+    let detailsShown = false;
     let reversed = false;
 
     // Direction of the cursor after a mark: the way the user last moved
@@ -335,6 +338,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
             helpOpen,
             helpScroll,
             detailsOpen,
+            detailsShown,
             targets,
             hiddenTargets: targets.filter((session) => !shownKeys.has(keyOf(session))).length,
             oldShown: sessions.some((s) => markable(s) && matches(s, ageFilter)),
@@ -345,6 +349,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
         errorsScroll = state.errorsScroll;
         helpScroll = state.helpScroll;
         listHeight = state.listHeight;
+        detailsShown = state.detailsShown;
 
         if (animating(clock)) {
             frameTimer ??= setTimeout(() => {
@@ -526,8 +531,12 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
     const onEdit = (name: string | undefined, text: string | undefined) => {
         if (name === "space") {
             toggle(sessions[cursor]);
-            step = nextStep();
-            move(cursor + step);
+
+            // The details follow the cursor: stay on the session being read
+            if (!detailsShown) {
+                step = nextStep();
+                move(cursor + step);
+            }
         } else if (text === "S") {
             purgeDeleted();
             reversed = !reversed;
