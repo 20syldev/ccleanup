@@ -17,7 +17,7 @@
         "build": "npm run clean && tsc",
         "dev": "tsc --watch",
         "test": "node --test \"src/**/__tests__/*.test.ts\"",
-        "check": "tsc --noEmit && eslint . && prettier --check .",
+        "check": "tsc --noEmit && eslint . && prettier --check . && node scripts/screenshot.ts --check",
         "format": "prettier --write . && eslint --fix .",
         "screenshots": "node scripts/screenshot.ts",
         "version": "npm run screenshots && git add assets/hero-*.svg",

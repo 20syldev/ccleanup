@@ -9,6 +9,9 @@ import { logo, LOGO_WIDTH } from "../src/ui/logo.ts";
 import { createTheme, type Rgb, type Theme } from "../src/ui/theme.ts";
 import { SCAN_SETTLE_MS, view, type ViewState } from "../src/ui/view.ts";
 
+// The details show dates: the zone is fixed so the pictures are the same on every machine
+process.env.TZ = "Europe/Paris";
+
 const ROOT = join(import.meta.dirname, "..");
 const COLS = 100;
 const ROWS = 23;
@@ -187,6 +190,7 @@ function state(dark: boolean, scene: Partial<ViewState> = {}): ViewState {
         helpScroll: 0,
         detailsOpen: false,
         detailsShown: false,
+        rowsTop: -1,
         targets: [],
         hiddenTargets: 0,
         oldShown: true,
@@ -509,14 +513,29 @@ function animate(frames: { lines: string[]; ms: number }[], paint: Theme): strin
     return [`<style>${styles.join("")}</style>`, ...groups].join("\n");
 }
 
+// With --check nothing is written: the pictures are only compared with assets/
+const CHECK = process.argv.includes("--check");
+const stale: string[] = [];
+
 /**
- * Writes one picture to assets/.
+ * Writes one picture to assets/, or with --check compares it with the one there.
  *
  * @param name - File name, without the extension
  * @param picture - The SVG document
  */
 function save(name: string, picture: string): void {
-    writeFileSync(join(ROOT, "assets", `${name}.svg`), picture);
+    const file = join(ROOT, "assets", `${name}.svg`);
+    if (CHECK) {
+        let current = "";
+        try {
+            current = readFileSync(file, "utf8");
+        } catch {
+            // A missing file is as stale as a different one
+        }
+        if (current !== picture) stale.push(`assets/${name}.svg`);
+        return;
+    }
+    writeFileSync(file, picture);
     console.log(`assets/${name}.svg ${Math.round(picture.length / 1024)} kB`);
 }
 
@@ -747,3 +766,8 @@ still(
     },
     ROWS + 3,
 );
+
+if (stale.length > 0) {
+    console.error(`Out of date: ${stale.join(", ")}\nRun npm run screenshots and commit them.`);
+    process.exitCode = 1;
+}
