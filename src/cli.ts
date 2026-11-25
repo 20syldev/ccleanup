@@ -8,6 +8,7 @@ import { check, installReminder, uninstallReminder } from "./core/remind.ts";
 import { removeSession, UnsafePathError } from "./core/remove.ts";
 import { discover, scan, type Session } from "./core/scan.ts";
 import { hasFilter, select, sortSessions } from "./core/select.ts";
+import { startUpdateCheck } from "./core/update.ts";
 import { type Messages, messages } from "./i18n/messages.ts";
 import { detectLang, formatSize, type Lang, tildify } from "./lib/format.ts";
 import { createTheme } from "./ui/theme.ts";
@@ -169,20 +170,29 @@ async function main(): Promise<number> {
 
         // Printed before the interface, so it stays after it.
         if (denied.size > 0) console.error(m.denied([...denied].map((path) => tildify(path))));
+
+        // Runs while the interface is open, and is dropped on exit if still waiting.
+        const current = version();
+        const update = startUpdateCheck(current, { env: process.env, now });
         const result = await runTui({
             configDirs: search.dirs,
             entries,
             open,
             denied: [...denied].map((path) => tildify(path)),
             lang,
-            version: version(),
+            version: current,
             now,
             recentMs: RECENT_MS,
             olderThan: options.olderThan,
             minSize: options.minSize,
             includeRecent: options.includeRecent,
+        }).catch(async (error: unknown) => {
+            await update.finish();
+            throw error;
         });
-        for (const row of exitSummary(result, result.theme, lang)) console.log(row);
+        const latest = await update.finish();
+        const notice = latest ? { latest, current, cols: process.stdout.columns || 80 } : undefined;
+        for (const row of exitSummary(result, result.theme, lang, notice)) console.log(row);
         return result.errors.length > 0 ? 1 : 0;
     }
 
