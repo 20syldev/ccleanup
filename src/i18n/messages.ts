@@ -64,6 +64,7 @@ export interface Details {
     state: string;
     states: { open: string; recent: string; marked: string; idle: string };
     resume: string;
+    launch: string;
 }
 
 /**
@@ -110,6 +111,8 @@ export interface Messages {
     failed: (count: number) => string;
     stopping: string;
     ctrlCAgain: string;
+    noResumeFolder: string;
+    claudeMissing: string;
     errorsHint: (count: number) => string;
     errorsTitle: (count: number) => string;
     tooSmall: { title: string; needs: string; hint: string };

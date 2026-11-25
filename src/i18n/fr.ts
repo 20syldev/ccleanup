@@ -156,6 +156,7 @@ export const fr: Messages = {
                     ["/", "chercher (projet, titre, dossier, id)"],
                     ["s/S", "changer le tri, l’inverser"],
                     ["i", "détails de la session"],
+                    ["c", "la reprendre dans claude, puis quitter (détails)"],
                 ],
             },
             {
@@ -201,6 +202,7 @@ export const fr: Messages = {
             idle: "inactive",
         },
         resume: "Reprendre",
+        launch: "lancer",
     },
     search: {
         prompt: "chercher",
@@ -213,6 +215,8 @@ export const fr: Messages = {
     failed: (count) => `${count} suppression${pluralFr(count)} en échec.`,
     stopping: "Arrêt après la session en cours…",
     ctrlCAgain: "Ctrl+C encore une fois pour quitter",
+    noResumeFolder: "Le dossier de cette session n'existe plus : impossible de la reprendre ici.",
+    claudeMissing: "claude est introuvable : installez Claude Code ou corrigez le PATH.",
     errorsHint: (count) => `${count} erreur${pluralFr(count)}`,
     errorsTitle: (count) => `Erreurs de suppression (${count})`,
     tooSmall: {

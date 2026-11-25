@@ -156,6 +156,7 @@ export const en: Messages = {
                     ["/", "search (project, title, folder, id)"],
                     ["s/S", "change the sort, reverse it"],
                     ["i", "details of the session"],
+                    ["c", "resume it in claude, then quit (details)"],
                 ],
             },
             {
@@ -201,6 +202,7 @@ export const en: Messages = {
             idle: "idle",
         },
         resume: "Resume",
+        launch: "run",
     },
     search: {
         prompt: "search",
@@ -212,6 +214,8 @@ export const en: Messages = {
     failed: (count) => `${count} deletion${pluralEn(count)} failed.`,
     stopping: "Stopping after the current session…",
     ctrlCAgain: "Ctrl+C once more to quit",
+    noResumeFolder: "The folder of this session is gone: it cannot be resumed here.",
+    claudeMissing: "claude was not found: install Claude Code or fix your PATH.",
     errorsHint: (count) => `${count} error${pluralEn(count)}`,
     errorsTitle: (count) => `Deletion errors (${count})`,
     tooSmall: {
