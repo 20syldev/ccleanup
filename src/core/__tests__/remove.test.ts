@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, describe, it } from "node:test";
@@ -8,6 +8,7 @@ import { removeSession } from "../remove.ts";
 import type { Session } from "../scan.ts";
 
 const ID = "44444444-4444-4444-8444-444444444444";
+const OTHER = "77777777-7777-4777-8777-777777777777";
 
 let root = "";
 let configDir = "";
@@ -89,6 +90,35 @@ describe("removeSession", () => {
         const file = await put("claude/projects/-p/memory.jsonl");
         await assert.rejects(removeSession(configDir, session([file], "memory")));
         assert.equal(await exists(file), true);
+    });
+
+    it("deletes the scratch folder of the temporary folder with the session", async () => {
+        const tempRoot = join(root, "tmp", "claude-1");
+        const transcript = await put(`claude/projects/-p/${ID}.jsonl`);
+        const scratch = dirname(await put(`tmp/claude-1/-p/${ID}/scratchpad/a.txt`));
+        const other = await put(`tmp/claude-1/-p/${OTHER}/scratchpad/a.txt`);
+        await removeSession(configDir, session([transcript, join(scratch, "..")]), tempRoot);
+        assert.equal(await exists(transcript), false);
+        assert.equal(await exists(join(scratch, "..")), false);
+        assert.equal(await exists(other), true);
+    });
+
+    it("refuses a path of the temporary folder when it is not the one given", async () => {
+        const scratch = join(dirname(await put(`tmp/claude-2/-p/${ID}/scratchpad/a.txt`)), "..");
+        await assert.rejects(removeSession(configDir, session([scratch])));
+        await assert.rejects(removeSession(configDir, session([scratch]), join(root, "tmp", "x")));
+        assert.equal(await exists(scratch), true);
+    });
+
+    it("refuses a scratch folder reached through a link out of the temporary folder", async () => {
+        const tempRoot = join(root, "tmp", "claude-3");
+        const victim = join(dirname(await put(`elsewhere/${ID}/keep.txt`)));
+        await mkdir(tempRoot, { recursive: true });
+        await symlink(join(root, "elsewhere"), join(tempRoot, "-p"));
+        await assert.rejects(
+            removeSession(configDir, session([join(tempRoot, "-p", ID)]), tempRoot),
+        );
+        assert.equal(await exists(join(victim, "keep.txt")), true);
     });
 
     it("deletes every path of a valid session and nothing else", async () => {
