@@ -223,6 +223,7 @@ export const en: Messages = {
     exitNothing: "Nothing deleted, see you next time.",
     exitTones: ["A little breathing room.", "Nice cleanup.", "Big cleanup!"],
     exitFailures: (count) => `${count} failure${pluralEn(count)}:`,
+    updateAvailable: (latest, current) => `${latest} is available, you have ${current}:`,
     recent: "recent",
     recentProtected: "Recent session, maybe running: protected (see --include-recent).",
     open: "open",

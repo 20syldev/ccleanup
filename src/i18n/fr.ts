@@ -225,6 +225,7 @@ export const fr: Messages = {
     exitNothing: "Rien supprimé, à la prochaine.",
     exitTones: ["Un peu d’air.", "Joli ménage.", "Gros ménage !"],
     exitFailures: (count) => `${count} échec${pluralFr(count)} :`,
+    updateAvailable: (latest, current) => `${latest} est disponible, tu as la ${current} :`,
     recent: "récente",
     recentProtected: "Session récente, peut-être active : protégée (voir --include-recent).",
     open: "ouverte",

@@ -117,6 +117,7 @@ export interface Messages {
     exitNothing: string;
     exitTones: [string, string, string];
     exitFailures: (count: number) => string;
+    updateAvailable: (latest: string, current: string) => string;
     recent: string;
     recentProtected: string;
     open: string;
