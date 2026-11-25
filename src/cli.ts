@@ -6,6 +6,7 @@ import { findConfigDirs } from "./core/config.ts";
 import { openSessions } from "./core/live.ts";
 import { check, installReminder, uninstallReminder } from "./core/remind.ts";
 import { removeSession, UnsafePathError } from "./core/remove.ts";
+import { resumePlan, runResume } from "./core/resume.ts";
 import { discover, scan, type Session } from "./core/scan.ts";
 import { hasFilter, select, sortSessions } from "./core/select.ts";
 import { startUpdateCheck } from "./core/update.ts";
@@ -194,6 +195,14 @@ async function main(): Promise<number> {
         const latest = await update.finish();
         const notice = latest ? { latest, current, cols: process.stdout.columns || 80 } : undefined;
         for (const row of exitSummary(result, result.theme, lang, notice)) console.log(row);
+
+        // The session picked with c: claude takes over the terminal, and its code is ours
+        const plan = result.resume && resumePlan(result.resume);
+        if (result.resume && plan) {
+            const code = await runResume(result.resume.id, plan);
+            if (code === undefined) console.error(m.claudeMissing);
+            return code ?? 1;
+        }
         return result.errors.length > 0 ? 1 : 0;
     }
 
