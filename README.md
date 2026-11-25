@@ -93,6 +93,7 @@ npm link          # puts `ccleanup` on the PATH (or run `node dist/cli.js`)
 | `CCLEANUP_ASCII=1`        | Draw the interface with ASCII glyphs only                               |
 | `CCLEANUP_NOTIFY=<cmd>`   | Notification command, called with the text then the title               |
 | `NO_COLOR`, `FORCE_COLOR` | Disable or force colors                                                 |
+| `NO_UPDATE_NOTIFIER=1`    | Never look for a newer version (see below)                              |
 
 The colors follow the terminal: true color, 256 or 16 colors, or none. The background is asked to the terminal (OSC 11, then `COLORFGBG`), and a light background gets a darker palette.
 
@@ -104,6 +105,17 @@ ccleanup --install-reminder --every weekly --older-than 14d --notify-above 1G
 ```
 
 This writes `ccleanup-reminder.service` and `.timer` in `~/.config/systemd/user` and enables the timer. Once a week, it checks the sessions and sends a desktop notification, only when more than 1 GB can be freed. `--dry-run` prints the units without writing anything, and `--uninstall-reminder` removes them. The notification uses `notify-send`; set `CCLEANUP_NOTIFY` to your own command to use something else.
+
+## Update notice
+
+When the interface closes, a line tells you if a newer version exists:
+
+```
+ccleanup  Nothing deleted, see you next time.
+          1.1.0 is available, you have 1.0.3: npm i -g ccleanup@latest
+```
+
+This is the only network call `ccleanup` makes. While the interface is open, it asks the npm registry (`https://registry.npmjs.org/ccleanup/latest`) for the latest version, at most once a day, and keeps the answer in `$XDG_CACHE_HOME/ccleanup/update.json` (`~/.cache` by default). The request carries nothing about you or your sessions, never delays the start or the exit, and is dropped when it is not over in time. Nothing is asked with `--list`, `--check`, `--yes` or `--dry-run`, under `npx` or in CI, nor when `NO_UPDATE_NOTIFIER` is set.
 
 ## What is deleted, and what is not
 
