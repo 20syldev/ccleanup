@@ -112,7 +112,7 @@ export interface Messages {
     ctrlCAgain: string;
     errorsHint: (count: number) => string;
     errorsTitle: (count: number) => string;
-    tooSmall: (cols: number, rows: number, minCols: number, minRows: number) => string;
+    tooSmall: { title: string; needs: string; hint: string };
     exitFreed: (size: string, count: number) => string;
     exitNothing: string;
     exitTones: [string, string, string];

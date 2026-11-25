@@ -215,8 +215,11 @@ export const fr: Messages = {
     ctrlCAgain: "Ctrl+C encore une fois pour quitter",
     errorsHint: (count) => `${count} erreur${pluralFr(count)}`,
     errorsTitle: (count) => `Erreurs de suppression (${count})`,
-    tooSmall: (cols, rows, minCols, minRows) =>
-        `Terminal trop petit\n${cols} × ${rows}, il faut ${minCols} × ${minRows}`,
+    tooSmall: {
+        title: "Terminal trop petit",
+        needs: "il faut",
+        hint: "Agrandis la fenêtre, ou appuie sur q pour quitter.",
+    },
     exitFreed: (size, count) =>
         `${size} libérés, ${count} session${pluralFr(count)} supprimée${pluralFr(count)}`,
     exitNothing: "Rien supprimé, à la prochaine.",

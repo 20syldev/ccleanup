@@ -214,8 +214,11 @@ export const en: Messages = {
     ctrlCAgain: "Ctrl+C once more to quit",
     errorsHint: (count) => `${count} error${pluralEn(count)}`,
     errorsTitle: (count) => `Deletion errors (${count})`,
-    tooSmall: (cols, rows, minCols, minRows) =>
-        `Terminal too small\n${cols} × ${rows}, needs ${minCols} × ${minRows}`,
+    tooSmall: {
+        title: "Terminal too small",
+        needs: "needs",
+        hint: "Make the window bigger, or press q to quit.",
+    },
     exitFreed: (size, count) => `${size} freed, ${count} session${pluralEn(count)} deleted`,
     exitNothing: "Nothing deleted, see you next time.",
     exitTones: ["A little breathing room.", "Nice cleanup.", "Big cleanup!"],
