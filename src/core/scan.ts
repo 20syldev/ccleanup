@@ -6,10 +6,11 @@ import { join } from "node:path";
 import { sanitize } from "../lib/text.ts";
 
 /**
- * What a session is made of on disk: its transcript, the folder beside it, and the
- * file history, environment and debug log kept by id in the config folder.
+ * What a session is made of on disk: its transcript, the folder beside it, the file
+ * history, environment and debug log kept by id in the config folder, and the scratch
+ * folder Claude Code keeps for it in the temporary folder of the system.
  */
-export type PartKind = "transcript" | "folder" | "history" | "env" | "debug";
+export type PartKind = "transcript" | "folder" | "history" | "env" | "debug" | "scratch";
 
 /**
  * A Claude Code session, found in the config folder `configDir`. `bytes` is the disk
@@ -53,12 +54,14 @@ export interface Entry {
 
 /**
  * When to scan: `recentMs` is the delay under which a session counts as recent; `open`
- * lists the ids of the sessions running now, from openSessions.
+ * lists the ids of the sessions running now, from openSessions; `tempRoot` is the folder of
+ * claudeTempRoot, where the scratch folders are looked for, none when it is not given.
  */
 export interface ScanOptions {
     now: number;
     recentMs: number;
     open: ReadonlySet<string>;
+    tempRoot?: string;
 }
 
 /**
@@ -423,7 +426,8 @@ export function placeholder(entry: Entry): Session {
  * Measures one session.
  *
  * It covers the transcript, its folder (tool results, subagents, workflows) and, when
- * the entry owns them, the file history, session environment and debug log.
+ * the entry owns them, the file history, session environment and debug log, then the
+ * scratch folder of the session in its project.
  *
  * @param entry - Session found by discover
  * @param options - Reference time, recent delay and open sessions
@@ -437,21 +441,26 @@ export async function measureEntry(entry: Entry, options: ScanOptions): Promise<
     const own = await Promise.all([measure(transcript), measure(folder)]);
     if (!own[0] && !own[1]) return null;
 
-    const extras = entry.ownsExtras
-        ? [
-              join(configDir, "file-history", id),
-              join(configDir, "session-env", id),
-              join(configDir, "debug", `${id}.txt`),
-          ]
-        : [];
-    const extraSizes = await Promise.all(extras.map(measure));
+    // Kept by id only, so one session owns them; the scratch folder is kept by project too
+    const extras: { path: string; kind: PartKind }[] = [
+        ...(entry.ownsExtras
+            ? [
+                  { path: join(configDir, "file-history", id), kind: "history" as const },
+                  { path: join(configDir, "session-env", id), kind: "env" as const },
+                  { path: join(configDir, "debug", `${id}.txt`), kind: "debug" as const },
+              ]
+            : []),
+        ...(options.tempRoot
+            ? [{ path: join(options.tempRoot, projectDir, id), kind: "scratch" as const }]
+            : []),
+    ];
+    const extraSizes = await Promise.all(extras.map(({ path }) => measure(path)));
 
     const paths: string[] = [];
     const parts: Session["parts"] = [];
     let bytes = 0;
     let mtime = 0;
     const ownKinds: PartKind[] = ["transcript", "folder"];
-    const extraKinds: PartKind[] = ["history", "env", "debug"];
     [transcript, folder].forEach((path, i) => {
         const size = own[i];
         if (!size) return;
@@ -460,11 +469,11 @@ export async function measureEntry(entry: Entry, options: ScanOptions): Promise<
         bytes += size.bytes;
         mtime = Math.max(mtime, size.mtime);
     });
-    extras.forEach((path, i) => {
+    extras.forEach(({ path, kind }, i) => {
         const size = extraSizes[i];
         if (!size) return;
         paths.push(path);
-        parts.push({ kind: extraKinds[i]!, bytes: size.bytes });
+        parts.push({ kind, bytes: size.bytes });
         bytes += size.bytes;
     });
 

@@ -68,6 +68,7 @@ before(async () => {
     await put(`projects/-home-test-beta/${ORPHAN}/subagents/a.jsonl`, "{}", 50);
     await put(`file-history/${ALPHA}/snapshot`, "h".repeat(3000), 40);
     await put(`debug/${ALPHA}.txt`, "debug", 40);
+    await put(`claude-1/-home-test-alpha/${ALPHA}/scratchpad/draft.txt`, "s".repeat(4000));
     await put(
         `projects/-home-test-alpha/${TWIN}.jsonl`,
         jsonl({ type: "user", message: { content: "a" } }),
@@ -77,6 +78,8 @@ before(async () => {
         jsonl({ type: "user", message: { content: "b" } }),
     );
     await put(`file-history/${TWIN}/snapshot`, "t");
+    await put(`claude-1/-home-test-alpha/${TWIN}/scratchpad/a.txt`, "a");
+    await put(`claude-1/-home-test-beta/${TWIN}/scratchpad/b.txt`, "b");
 });
 
 after(async () => {
@@ -134,6 +137,49 @@ describe("measureEntry", () => {
         assert.ok(names.some((name) => name.startsWith("/file-history/")));
         assert.ok(names.some((name) => name.startsWith("/debug/")));
         assert.ok(session.bytes >= 8000);
+    });
+
+    it("counts the scratch folder of the temporary folder, apart from the age", async () => {
+        const entry = (await discover(root)).find((e) => e.id === ALPHA)!;
+        const plain = (await measureEntry(entry, options()))!;
+        const tempRoot = join(root, "claude-1");
+        const session = (await measureEntry(entry, { ...options(), tempRoot }))!;
+        assert.deepEqual(session.paths.slice(-1), [join(tempRoot, "-home-test-alpha", ALPHA)]);
+        const scratch = session.parts.find((part) => part.kind === "scratch");
+        assert.ok(scratch && scratch.bytes >= 4000);
+        assert.equal(session.bytes, plain.bytes + scratch.bytes);
+        assert.equal(session.mtime, plain.mtime);
+        assert.equal(
+            plain.parts.some((part) => part.kind === "scratch"),
+            false,
+        );
+    });
+
+    it("gives each of two sessions sharing an id its own scratch folder", async () => {
+        const twins = (await discover(root)).filter((entry) => entry.id === TWIN);
+        const tempRoot = join(root, "claude-1");
+        const [first, second] = await Promise.all(
+            twins.map((e) => measureEntry(e, { ...options(), tempRoot })),
+        );
+        const scratch = (session: typeof first) =>
+            session!.paths.filter((p) => p.startsWith(tempRoot));
+        assert.deepEqual(scratch(first), [join(tempRoot, "-home-test-alpha", TWIN)]);
+        assert.deepEqual(scratch(second), [join(tempRoot, "-home-test-beta", TWIN)]);
+        assert.equal(first!.paths.length, 3);
+        assert.equal(second!.paths.length, 2);
+    });
+
+    it("leaves out a scratch folder that does not exist", async () => {
+        const entry = (await discover(root)).find((e) => e.id === BETA)!;
+        const session = (await measureEntry(entry, {
+            ...options(),
+            tempRoot: join(root, "claude-1"),
+        }))!;
+        assert.equal(
+            session.parts.some((part) => part.kind === "scratch"),
+            false,
+        );
+        assert.equal(session.paths.length, 1);
     });
 
     it("falls back to the first prompt and flags a fresh session as recent", async () => {
