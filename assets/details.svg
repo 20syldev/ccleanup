@@ -110,6 +110,8 @@
 <text x="127.2" y="89.06" textLength="50.400000000000006" lengthAdjust="spacingAndGlyphs" fill="#d97757">claude</text>
 <text x="186" y="89.06" textLength="67.2" lengthAdjust="spacingAndGlyphs" fill="#d97757">--resume</text>
 <text x="261.6" y="89.06" textLength="302.40000000000003" lengthAdjust="spacingAndGlyphs" fill="#d97757">00000005-4c1e-4a7f-9b2d-5e8f3a6c000e</text>
+<text x="580.8000000000001" y="89.06" textLength="8.4" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee" font-weight="bold" fill-opacity="0.6">c</text>
+<text x="597.6" y="89.06" textLength="25.200000000000003" lengthAdjust="spacingAndGlyphs" fill="#8b8697" fill-opacity="0.6">run</text>
 <path d="M837.0000000000001 75V94" stroke="#8b8697" stroke-width="1.2" fill="none"/>
 <path d="M30.599999999999998 94V113" stroke="#8b8697" stroke-width="1.2" fill="none"/>
 <text x="43.2" y="108.06" textLength="58.800000000000004" lengthAdjust="spacingAndGlyphs" fill="#8b8697">Started</text>

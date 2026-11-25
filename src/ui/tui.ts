@@ -3,6 +3,7 @@ import type { Key } from "node:readline";
 import { DEFAULT_OLDER_THAN } from "../core/args.ts";
 import { openSessions } from "../core/live.ts";
 import { removeSession, UnsafePathError } from "../core/remove.ts";
+import { resumePlan } from "../core/resume.ts";
 import {
     CONCURRENCY,
     type Entry,
@@ -62,13 +63,15 @@ export interface TuiOptions {
 }
 
 /**
- * Outcome of a run, with the theme so the exit summary matches the interface.
+ * Outcome of a run, with the theme so the exit summary matches the interface. `resume` is the
+ * session to run in claude once the interface is closed, when the user picked one.
  */
 export interface TuiResult {
     deleted: number;
     freed: number;
     errors: DeletionError[];
     theme: Theme;
+    resume?: Session;
 }
 
 /**
@@ -226,6 +229,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
     let frameTimer: NodeJS.Timeout | undefined;
     let renderQueued = false;
     let input: Input | undefined;
+    let resuming: Session | undefined;
     let resolveRun: (result: TuiResult) => void = () => undefined;
 
     const keyOf = (session: Session) => sessionKey(session);
@@ -428,7 +432,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
         process.removeListener("exit", restore);
         restore();
         stdin.pause();
-        resolveRun({ deleted, freed, errors: [...errors.values()], theme });
+        resolveRun({ deleted, freed, errors: [...errors.values()], theme, resume: resuming });
     };
 
     const deleteMarked = async () => {
@@ -513,6 +517,14 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
         const key = keyOf(session);
         if (marked.has(key)) marked.delete(key);
         else marked.add(key);
+    };
+
+    const resumeSession = () => {
+        const session = sessions[cursor];
+        if (!session || session.pending || states.get(keyOf(session)) === "deleted") return;
+        if (!resumePlan(session)) return notify(m.noResumeFolder, "warn");
+        resuming = session;
+        finish();
     };
 
     const purgeDeleted = () => {
@@ -684,6 +696,7 @@ function createApp(options: TuiOptions, theme: Theme, screen: Screen): App {
             helpScroll = 0;
         } else if (text === "/") searching = true;
         else if (name === "i" && !key?.ctrl) detailsOpen = !detailsOpen;
+        else if (name === "c" && !key?.ctrl && detailsShown && !deletion) resumeSession();
         else if (!deletion) onEdit(name, text);
         render();
     };

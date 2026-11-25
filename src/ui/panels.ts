@@ -307,6 +307,15 @@ export function detailsBox(
         [formatDate(session.mtime, lang), { fg: "text" }],
         [` (${formatAge(now - session.mtime, lang)})`, { fg: "muted" }],
     );
+    const command: Segment = [`claude --resume ${session.id}`, { fg: "accent" }];
+    const hint: Segment[] = [
+        ["  c ", { fg: "text", bold: true, dim: true }],
+        [m.launch, { fg: "muted", dim: true }],
+    ];
+
+    // The hint is shown whole or not at all: the row is 4 cells of box and 10 of label
+    const room = Math.max(20, cols - SPARE - 4) - 2 - 10;
+    const hintFits = width(command[0]) + hint.reduce((sum, [text]) => sum + width(text), 0) <= room;
     const body: Segment[][] = [
         [[session.title || "-", { fg: "text", bold: true }]],
         field(m.folder, [
@@ -315,7 +324,7 @@ export function detailsBox(
             [`${m.config} `, { fg: "muted" }],
             [sanitize(tildify(session.configDir)), { fg: "text" }],
         ]),
-        field(m.resume, [[`claude --resume ${session.id}`, { fg: "accent" }]]),
+        field(m.resume, [command, ...(hintFits ? hint : [])]),
         field(session.startedAt ? m.started : m.modified, dates),
         field(m.size, [
             [formatSize(session.bytes, lang), { fg: "text", bold: true }],
