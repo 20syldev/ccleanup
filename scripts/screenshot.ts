@@ -91,6 +91,9 @@ const FIXTURE: [number, number, string, string, ("open" | "recent")?][] = [
 function sessions(): Session[] {
     return FIXTURE.map(([mb, hours, project, title, flag], i) => {
         const bytes = Math.round(mb * MB);
+
+        // The bigger sessions also left a scratch folder
+        const scratch = mb >= 300 ? Math.round(bytes * 0.02) : 0;
         const id = `${(i + 1).toString(16).padStart(8, "0")}-4c1e-4a7f-9b2d-5e8f3a6c${(i + 10).toString(16).padStart(4, "0")}`;
         return {
             id,
@@ -110,8 +113,9 @@ function sessions(): Session[] {
                 { kind: "folder", bytes: Math.round(bytes * 0.24) },
                 {
                     kind: "history",
-                    bytes: bytes - Math.round(bytes * 0.71) - Math.round(bytes * 0.24),
+                    bytes: bytes - Math.round(bytes * 0.71) - Math.round(bytes * 0.24) - scratch,
                 },
+                ...(scratch > 0 ? [{ kind: "scratch" as const, bytes: scratch }] : []),
             ],
         };
     });

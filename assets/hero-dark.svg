@@ -4374,18 +4374,22 @@
 <g class="f13"><g transform="translate(529.2 0)"><circle cx="99.48" cy="375.77" r="1.3" fill="#d7a87a"/>
 <circle cx="133.08" cy="367.41" r="1.3" fill="#be845f"/>
 <circle cx="149.88" cy="371.59" r="1.3" fill="#c8926a"/></g></g>
-<g class="f1"><g transform="translate(529.2 0)"><text x="26.4" y="374.06" textLength="33.6" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee">15.6</text>
-<text x="68.4" y="374.06" textLength="25.200000000000003" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee">MB)</text></g></g>
-<g class="f34"><g transform="translate(672 0)"><circle cx="79.32000000000001" cy="371.59" r="1.3" fill="#f5d299"/>
-<circle cx="99.48" cy="367.41" r="1.3" fill="#fddda1"/><circle cx="99.48" cy="375.77" r="1.3" fill="#fddda1"/>
-<circle cx="112.92" cy="367.41" r="1.3" fill="#eac28d"/></g></g>
-<g class="f35"><g transform="translate(672 0)"><circle cx="79.32000000000001" cy="371.59" r="1.3" fill="#f1cc94"/>
-<circle cx="99.48" cy="363.23" r="1.3" fill="#f8d79c"/><circle cx="99.48" cy="371.59" r="1.3" fill="#f8d79c"/>
-<circle cx="112.92" cy="367.41" r="1.3" fill="#e5bb88"/></g></g>
-<g class="f13"><g transform="translate(672 0)"><circle cx="54.120000000000005" cy="367.41" r="1.3" fill="#bc825e"/>
-<circle cx="99.48" cy="363.23" r="1.3" fill="#b77b59"/>
-<circle cx="133.08" cy="371.59" r="1.3" fill="#c79069"/></g></g>
-<g class="f1"><g transform="translate(672 0)"><path d="M165 360V379" stroke="#8b8697" stroke-width="1.2" fill="none"/></g></g>
+<g class="f1"><g transform="translate(529.2 0)"><text x="26.4" y="374.06" textLength="25.200000000000003" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee">9.4</text>
+<text x="60" y="374.06" textLength="16.8" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee">MB</text>
+<text x="76.80000000000001" y="374.06" textLength="8.4" lengthAdjust="spacingAndGlyphs" fill="#8b8697">,</text>
+<text x="93.60000000000001" y="374.06" textLength="58.800000000000004" lengthAdjust="spacingAndGlyphs" fill="#8b8697">scratch</text></g></g>
+<g class="f34"><g transform="translate(663.6 0)"><circle cx="87.72" cy="371.59" r="1.3" fill="#f5d299"/>
+<circle cx="107.88" cy="367.41" r="1.3" fill="#fddda1"/><circle cx="107.88" cy="375.77" r="1.3" fill="#fddda1"/>
+<circle cx="121.32000000000001" cy="367.41" r="1.3" fill="#eac28d"/></g></g>
+<g class="f35"><g transform="translate(663.6 0)"><circle cx="87.72" cy="371.59" r="1.3" fill="#f1cc94"/>
+<circle cx="107.88" cy="363.23" r="1.3" fill="#f8d79c"/><circle cx="107.88" cy="371.59" r="1.3" fill="#f8d79c"/>
+<circle cx="121.32000000000001" cy="367.41" r="1.3" fill="#e5bb88"/></g></g>
+<g class="f13"><g transform="translate(663.6 0)"><circle cx="62.52" cy="367.41" r="1.3" fill="#bc825e"/>
+<circle cx="107.88" cy="363.23" r="1.3" fill="#b77b59"/>
+<circle cx="141.48000000000002" cy="371.59" r="1.3" fill="#c79069"/></g></g>
+<g class="f1"><g transform="translate(663.6 0)"><text x="26.4" y="374.06" textLength="25.200000000000003" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee">6.2</text>
+<text x="60" y="374.06" textLength="25.200000000000003" lengthAdjust="spacingAndGlyphs" fill="#e8e4ee">MB)</text>
+<path d="M173.4 360V379" stroke="#8b8697" stroke-width="1.2" fill="none"/></g></g>
 <g class="f13"><circle cx="37.32" cy="382.23" r="1.3" fill="#dbae7e"/>
 <circle cx="49.080000000000005" cy="390.59" r="1.3" fill="#f1cc95"/>
 <circle cx="65.88" cy="382.23" r="1.3" fill="#daac7d"/>
