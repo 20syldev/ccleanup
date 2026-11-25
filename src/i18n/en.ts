@@ -193,6 +193,7 @@ export const en: Messages = {
             history: "history",
             env: "env",
             debug: "debug",
+            scratch: "scratch",
         },
         state: "State",
         states: {

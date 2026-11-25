@@ -60,7 +60,7 @@ export interface Details {
     started: string;
     modified: string;
     size: string;
-    parts: Record<"transcript" | "folder" | "history" | "env" | "debug", string>;
+    parts: Record<"transcript" | "folder" | "history" | "env" | "debug" | "scratch", string>;
     state: string;
     states: { open: string; recent: string; marked: string; idle: string };
     resume: string;
