@@ -122,7 +122,7 @@ npm i -g ccleanup
 ccleanup --install-reminder --every weekly --older-than 14d --notify-above 1G
 ```
 
-This writes `ccleanup-reminder.service` and `.timer` in `~/.config/systemd/user` and enables the timer. Once a week, it checks the sessions and sends a desktop notification, only when more than 1 GB can be freed. `--dry-run` prints the units without writing anything, and `--uninstall-reminder` removes them. The notification uses `notify-send`; set `CCLEANUP_NOTIFY` to your own command to use something else.
+This writes `ccleanup-reminder.service` and `.timer` in `~/.config/systemd/user` and enables the timer. Once a week, it checks the sessions and sends a desktop notification, only when more than 1 GB can be freed. `--dry-run` prints the units without writing anything, and `--uninstall-reminder` removes them, or says that none is installed. There is a single reminder: running `--install-reminder` again replaces the previous one, with the new period and filters. The notification uses `notify-send`; set `CCLEANUP_NOTIFY` to your own command to use something else.
 
 ## Update notice
 
