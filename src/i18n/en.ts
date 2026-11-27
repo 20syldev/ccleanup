@@ -22,34 +22,34 @@ Keys:
   q, esc            quit (Ctrl+C twice, Ctrl+Z to suspend)
 
 Options:
-  -l, --list              print the list, no interactive UI
-      --older-than <d>    only target sessions older than <d> (12h, 14d, 2w, 3m)
-      --min-size <s>      only target sessions bigger than <s> (100K, 500M, 1G)
-  -y, --yes               delete the targeted sessions without UI (requires a filter)
-  -n, --dry-run           show what would be deleted, delete nothing
-      --include-recent    allow deleting sessions modified less than 30 min ago
-                          (never those open in Claude Code)
-      --claude-dir <dir>  Claude config folder, repeatable (default: those that exist among
-                          $CLAUDE_CONFIG_DIR, ~/.claude and $XDG_CONFIG_HOME/claude or ~/.config/claude)
+  -l, --list                print the list, no interactive UI
+      --older-than <d>      only target sessions older than <d> (12h, 14d, 2w, 3m)
+      --min-size <s>        only target sessions bigger than <s> (100K, 500M, 1G)
+  -y, --yes                 delete the targeted sessions without UI (requires a filter)
+  -n, --dry-run             show what would be deleted, delete nothing
+      --include-recent      allow deleting sessions modified less than 30 min ago
+                            (never those open in Claude Code)
+      --claude-dir <dir>    Claude config folder, repeatable (default: those that exist among
+                            $CLAUDE_CONFIG_DIR, ~/.claude and $XDG_CONFIG_HOME/claude or ~/.config/claude)
 
 Reminder:
-      --install-reminder  install a systemd timer that notifies when there is cleaning to do
-      --every <p>         reminder period: daily, weekly (default) or monthly
-      --notify-above <s>  notification threshold (default: 1G)
+      --install-reminder    install a systemd timer that notifies when there is cleaning to do
+      --every <p>           reminder period: daily, weekly (default) or monthly
+      --notify-above <s>    notification threshold (default: 1G)
       --uninstall-reminder  remove the timer
-      --check             what the reminder runs, by hand: summarize what can be cleaned
-                          (14d by default), delete nothing
-      --notify            with --check: desktop notification above the threshold
+      --check               what the reminder runs, by hand: summarize what can be cleaned
+                            (14d by default), delete nothing
+      --notify              with --check: desktop notification above the threshold
 
-  -h, --help              show this help
-  -v, --version           show the version
+  -h, --help                show this help
+  -v, --version             show the version
 
 Environment:
-  CCLEANUP_LANG=fr|en     interface language (default: system locale)
-  CCLEANUP_NOTIFY=<cmd>   notification command, which receives the text, then the title
-                          (default: notify-send)
-  CCLEANUP_ASCII=1        draw the interface with ASCII only
-  NO_COLOR, FORCE_COLOR   disable or force colors
+  CCLEANUP_LANG=fr|en       interface language (default: system locale)
+  CCLEANUP_NOTIFY=<cmd>     notification command, which receives the text, then the title
+                            (default: notify-send)
+  CCLEANUP_ASCII=1          draw the interface with ASCII only
+  NO_COLOR, FORCE_COLOR     disable or force colors
 `;
 
 /**
@@ -249,6 +249,9 @@ export const en: Messages = {
     notifyFailed: "Could not send the notification (is notify-send installed?).",
     reminderInstalled: (every) => `${every} reminder installed (ccleanup-reminder.timer).`,
     reminderRemoved: "Reminder removed.",
+    reminderReplaced: (every) =>
+        `${every} reminder updated: it replaces the previous one (ccleanup-reminder.timer).`,
+    reminderNone: "No reminder is installed.",
     reminderDry: "Dry run: nothing was written or enabled.",
     reminderNeedsGlobal:
         "ccleanup is running from the npx cache, which is temporary. Install it first: npm i -g ccleanup",

@@ -138,6 +138,8 @@ export interface Messages {
     notifyFailed: string;
     reminderInstalled: (every: string) => string;
     reminderRemoved: string;
+    reminderReplaced: (every: string) => string;
+    reminderNone: string;
     reminderDry: string;
     reminderNeedsGlobal: string;
     reminderNeedsSystemd: string;

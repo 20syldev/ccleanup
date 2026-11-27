@@ -22,34 +22,34 @@ Touches:
   q, échap          quitter (Ctrl+C deux fois, Ctrl+Z pour suspendre)
 
 Options:
-  -l, --list              afficher la liste sans interface interactive
-      --older-than <d>    ne cibler que les sessions plus vieilles que <d> (12h, 14d, 2w, 3m)
-      --min-size <s>      ne cibler que les sessions plus grosses que <s> (100K, 500M, 1G)
-  -y, --yes               supprimer sans interface les sessions ciblées (exige un filtre)
-  -n, --dry-run           montrer ce qui serait supprimé, sans rien supprimer
-      --include-recent    autoriser la suppression des sessions modifiées il y a moins de 30 min
-                          (jamais celles ouvertes dans Claude Code)
-      --claude-dir <dir>  dossier de config Claude, répétable (défaut : ceux qui existent parmi
-                          $CLAUDE_CONFIG_DIR, ~/.claude et $XDG_CONFIG_HOME/claude ou ~/.config/claude)
+  -l, --list                afficher la liste sans interface interactive
+      --older-than <d>      ne cibler que les sessions plus vieilles que <d> (12h, 14d, 2w, 3m)
+      --min-size <s>        ne cibler que les sessions plus grosses que <s> (100K, 500M, 1G)
+  -y, --yes                 supprimer sans interface les sessions ciblées (exige un filtre)
+  -n, --dry-run             montrer ce qui serait supprimé, sans rien supprimer
+      --include-recent      autoriser la suppression des sessions modifiées il y a moins de 30 min
+                            (jamais celles ouvertes dans Claude Code)
+      --claude-dir <dir>    dossier de config Claude, répétable (défaut : ceux qui existent parmi
+                            $CLAUDE_CONFIG_DIR, ~/.claude et $XDG_CONFIG_HOME/claude ou ~/.config/claude)
 
 Rappel:
-      --install-reminder  installer un timer systemd qui notifie quand il y a de quoi nettoyer
-      --every <p>         fréquence du rappel : daily, weekly (défaut) ou monthly
-      --notify-above <s>  seuil de la notification (défaut : 1G)
+      --install-reminder    installer un timer systemd qui notifie quand il y a de quoi nettoyer
+      --every <p>           fréquence du rappel : daily, weekly (défaut) ou monthly
+      --notify-above <s>    seuil de la notification (défaut : 1G)
       --uninstall-reminder  retirer le timer
-      --check             ce que lance le rappel, à la main : résumer ce qui est nettoyable
-                          (14d par défaut), sans rien supprimer
-      --notify            avec --check : notification de bureau au-dessus du seuil
+      --check               ce que lance le rappel, à la main : résumer ce qui est nettoyable
+                            (14d par défaut), sans rien supprimer
+      --notify              avec --check : notification de bureau au-dessus du seuil
 
-  -h, --help              afficher cette aide
-  -v, --version           afficher la version
+  -h, --help                afficher cette aide
+  -v, --version             afficher la version
 
 Variables:
-  CCLEANUP_LANG=fr|en     langue de l’interface (défaut : celle du système)
-  CCLEANUP_NOTIFY=<cmd>   commande de notification, qui reçoit le texte puis le titre
-                          (défaut : notify-send)
-  CCLEANUP_ASCII=1        dessiner l'interface en ASCII seulement
-  NO_COLOR, FORCE_COLOR   désactiver ou forcer les couleurs
+  CCLEANUP_LANG=fr|en       langue de l’interface (défaut : celle du système)
+  CCLEANUP_NOTIFY=<cmd>     commande de notification, qui reçoit le texte puis le titre
+                            (défaut : notify-send)
+  CCLEANUP_ASCII=1          dessiner l'interface en ASCII seulement
+  NO_COLOR, FORCE_COLOR     désactiver ou forcer les couleurs
 `;
 
 /**
@@ -253,6 +253,9 @@ export const fr: Messages = {
     notifyFailed: "Notification impossible (notify-send introuvable ?).",
     reminderInstalled: (every) => `Rappel ${every} installé (ccleanup-reminder.timer).`,
     reminderRemoved: "Rappel retiré.",
+    reminderReplaced: (every) =>
+        `Rappel ${every} mis à jour : il remplace le précédent (ccleanup-reminder.timer).`,
+    reminderNone: "Aucun rappel n’est installé.",
     reminderDry: "Simulation : rien n’a été écrit ni activé.",
     reminderNeedsGlobal:
         "ccleanup tourne depuis le cache npx, qui est temporaire. Installe-le d’abord : npm i -g ccleanup",
