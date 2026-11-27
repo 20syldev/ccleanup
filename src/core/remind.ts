@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, realpath, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, realpath, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -105,6 +105,19 @@ function quote(value: string): string {
 }
 
 /**
+ * Tells whether a file exists.
+ *
+ * @param path - File to look for
+ * @returns True when it can be reached
+ */
+async function exists(path: string): Promise<boolean> {
+    return access(path).then(
+        () => true,
+        () => false,
+    );
+}
+
+/**
  * Writes the text of the reminder service and timer.
  *
  * @param cli - Absolute path of the installed cli.js
@@ -154,7 +167,8 @@ function units(cli: string, options: Options, lang: Lang): { service: string; ti
 /**
  * Installs and enables the systemd user timer that runs `--check --notify`.
  *
- * With `--dry-run`, prints the units and the commands instead of writing anything.
+ * With `--dry-run`, prints the units and the commands instead of writing anything. There is
+ * one reminder: installing again rewrites its units, so it replaces the previous one.
  *
  * @param options - Parsed options: period, filters and dry-run flag
  * @param lang - Language of the messages and of the future notifications
@@ -180,16 +194,20 @@ export async function installReminder(options: Options, lang: Lang): Promise<voi
         return;
     }
 
+    const replaced = await exists(timerPath);
     await mkdir(unitDir(), { recursive: true });
     await writeFile(servicePath, service);
     await writeFile(timerPath, timer);
     await run("systemctl", ["--user", "daemon-reload"]);
     await run("systemctl", ["--user", "enable", "--now", `${UNIT}.timer`]);
-    console.log(m.reminderInstalled(options.every));
+
+    // A timer already enabled is restarted, so the new period applies at once
+    if (replaced) await run("systemctl", ["--user", "restart", `${UNIT}.timer`]);
+    console.log(replaced ? m.reminderReplaced(options.every) : m.reminderInstalled(options.every));
 }
 
 /**
- * Disables the reminder timer and removes its unit files.
+ * Disables the reminder timer and removes its unit files; says so when there is none.
  *
  * @param options - Parsed options; with --dry-run, only prints what would happen
  * @param lang - Language of the messages
@@ -205,7 +223,10 @@ export async function uninstallReminder(options: Options, lang: Lang): Promise<v
         return;
     }
 
-    // Disabling fails when the timer was never installed, which is fine here.
+    if (!(await exists(servicePath)) && !(await exists(timerPath))) {
+        console.log(m.reminderNone);
+        return;
+    }
     await run("systemctl", ["--user", "disable", "--now", `${UNIT}.timer`]).catch(() => undefined);
     await rm(servicePath, { force: true });
     await rm(timerPath, { force: true });
