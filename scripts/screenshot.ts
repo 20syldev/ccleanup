@@ -20,6 +20,9 @@ const CELL_H = 19;
 const FONT_SIZE = 14;
 const PAD = 18;
 
+// How far a filled rect overshoots its cell in pixels, so snapped neighbours leave no gap
+const SEAM = 0.4;
+
 // Same pace as the redraws of the app
 const FRAME_MS = 80;
 
@@ -379,7 +382,7 @@ function draw(lines: string[], paint: Theme, fromCol = 0, cols = COLS, firstRow 
             if (cell.pen.inverse) [fg, bg] = [bg ?? background, fg];
             if (bg)
                 parts.push(
-                    `<rect x="${x}" y="${y}" width="${cell.span * CELL_W + 0.4}" height="${CELL_H}" fill="${bg}"/>`,
+                    `<rect x="${x}" y="${y}" width="${cell.span * CELL_W + SEAM}" height="${CELL_H}" fill="${bg}"/>`,
                 );
 
             // Spaces only move the column, so no viewer can collapse them
@@ -432,6 +435,9 @@ function svg(
         `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${outW} ${outH}" width="${outW}" height="${outH}" role="img" aria-label="${escapeXml(picture.label)}">`,
         `<rect width="${outW}" height="${outH}" rx="10" fill="${hex(paint.rgb("paper"))}"/>`,
         `<g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="${FONT_SIZE}" xml:space="preserve">`,
+
+        // Cells sit on a fractional grid: crisp rects leave no seam when a viewer scales the picture
+        `<style>g rect{shape-rendering:crispEdges}</style>`,
         picture.inner,
         "</g>",
         "</svg>",
@@ -699,7 +705,7 @@ function readmeLogo(dark: boolean): void {
                 const x = num((col + 1) * CELL_W);
                 const y = num(((r * 2 + half + 1) * CELL_H) / 2);
                 const fill = color === shadow && !dark ? LIGHT_SHADOW : color;
-                const rect = `<rect x="${x}" y="${y}" width="${num(CELL_W + 0.4)}" height="${num(CELL_H / 2 + 0.4)}" fill="${fill}"/>`;
+                const rect = `<rect x="${x}" y="${y}" width="${num(CELL_W + SEAM)}" height="${num(CELL_H / 2 + SEAM)}" fill="${fill}"/>`;
                 (color === shadow ? shade : ink).push(rect);
             });
             col += cell.span;
