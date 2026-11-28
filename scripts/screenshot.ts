@@ -693,6 +693,10 @@ function readmeLogo(dark: boolean): void {
     const ink: string[] = [];
     const shade: string[] = [];
     const num = (value: number) => Number(value.toFixed(2));
+
+    // Every half-cell of the logo, by position, so a rect knows what lies next to it
+    const pixels = new Map<string, { color: string; shadow: boolean }>();
+    const key = (row: number, col: number) => `${row},${col}`;
     logo(paint).forEach((row, r) => {
         let col = 0;
         for (const cell of cells(row)) {
@@ -701,16 +705,40 @@ function readmeLogo(dark: boolean): void {
             const top = cell.char === LOWER || cell.char === " " ? bg : fg;
             const bottom = cell.char === UPPER || cell.char === " " ? bg : fg;
             [top, bottom].forEach((color, half) => {
-                if (!color) return;
-                const x = num((col + 1) * CELL_W);
-                const y = num(((r * 2 + half + 1) * CELL_H) / 2);
-                const fill = color === shadow && !dark ? LIGHT_SHADOW : color;
-                const rect = `<rect x="${x}" y="${y}" width="${num(CELL_W + SEAM)}" height="${num(CELL_H / 2 + SEAM)}" fill="${fill}"/>`;
-                (color === shadow ? shade : ink).push(rect);
+                if (color) pixels.set(key(r * 2 + half, col), { color, shadow: color === shadow });
             });
             col += cell.span;
         }
     });
+
+    for (const [position, { color, shadow: isShadow }] of pixels) {
+        const [row, col] = position.split(",").map(Number);
+        const right = pixels.get(key(row, col + 1));
+        const below = pixels.get(key(row + 1, col));
+
+        // A rect only overlaps a neighbour that paints over it or that is of its own layer,
+        // else the overlap would show as a thin line past the end of a stroke
+        const covers = (next?: { shadow: boolean }) => next && (isShadow || !next.shadow);
+        const toRight = covers(right) ? SEAM : 0;
+        const toBottom = covers(below) ? SEAM : 0;
+        const x = num((col + 1) * CELL_W);
+        const y = num(((row + 1) * CELL_H) / 2);
+        const fill = isShadow && !dark ? LIGHT_SHADOW : color;
+        const rects = isShadow ? shade : ink;
+        const rect = (w: number, h: number, left = x, top = y) =>
+            rects.push(
+                `<rect x="${left}" y="${top}" width="${num(w)}" height="${num(h)}" fill="${fill}"/>`,
+            );
+
+        // The corner of both overlaps needs the diagonal cell to hide it, else it is a notch
+        if (toRight && toBottom && !covers(pixels.get(key(row + 1, col + 1)))) {
+            rect(CELL_W + toRight, CELL_H / 2);
+            rect(CELL_W, toBottom, x, num(y + CELL_H / 2));
+        } else {
+            rect(CELL_W + toRight, CELL_H / 2 + toBottom);
+        }
+    }
+
     const outW = Math.round((LOGO_WIDTH + 2) * CELL_W);
     const outH = Math.round((logo(paint).length + 1) * CELL_H);
 
