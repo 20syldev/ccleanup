@@ -1,5 +1,5 @@
 {
-    "version": "1.4.0",
+    "version": "1.4.1",
     "name": "ccleanup",
     "description": "Interactive cleanup of Claude Code sessions: find the biggest and oldest transcripts, delete them, get a reminder.",
     "type": "module",
